@@ -1,0 +1,12 @@
+*.iml
+*.ipr
+*.iwp
+*.la
+*.lo
+*.o
+*.so
+*.swp
+.idea
+.libs
+hs_err_*.log
+target

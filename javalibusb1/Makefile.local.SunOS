@@ -1,0 +1,4 @@
+#JAVA_HOME=/home/trygvis/opt/java/jdk1.6.0_16
+JAVA_HOME=/home/trygvis/opt/java/jdk1.6.0_18
+CC = cc
+CCFLAGS += -I$(JDK_HOME)/include/solaris

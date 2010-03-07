@@ -1,0 +1,23 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>no.hackaton</groupId>
+  <artifactId>javausb</artifactId>
+  <version>1.0.1-1-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <modules>
+    <module>ftdi</module>
+    <module>javax.usb</module>
+    <module>javalibusb1</module>
+  </modules>
+</project>

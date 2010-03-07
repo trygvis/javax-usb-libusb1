@@ -1,0 +1,6 @@
+o Consider adding an "closed" check to all methods.
+  It will never fail unless objects are explicitly closes(), which they're not if a user
+  is sticking strictly to the javax.usb interface. However, making the JVM abort is not
+  fun if the object for some reason has been closed() and then referenced.
+
+  Are there any major performance overhead with this checking?
