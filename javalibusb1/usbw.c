@@ -111,6 +111,20 @@ int usbw_get_configuration(struct libusb_device_handle *handle, int *config) {
     return err;
 }
 
+int usbw_set_configuration(struct libusb_device_handle *handle, int configuration) {
+    usbw_printf("PRE: libusb_set_configuration(%p, %d)\n", handle, configuration);
+    int err = libusb_set_configuration(handle, configuration);
+    usbw_printf("RET: err=%d\n", err);
+    return err;
+}
+
+int usbw_claim_interface(struct libusb_device_handle *device, int interface_number) {
+    usbw_printf("PRE: libusb_claim_interface(%p, %d)\n", device, interface_number);
+    int err = libusb_claim_interface(device, interface_number);
+    usbw_printf("RET: err=%d\n", err);
+    return err;
+}
+
 /*************************************************************************
  * USB descriptors
  */

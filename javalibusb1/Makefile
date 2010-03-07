@@ -18,7 +18,7 @@ javalibusb.lo: javalibusb.c
 usbw.lo: usbw.c
 	$(LIBTOOL) --mode=compile --tag=CC cc -Wall -g -c -shared -o $@ $< $(CCFLAGS)
 
-javalibusb.c: javalibusb1_libusb1.h javalibusb1_impl_Libusb1UsbDevice.h
+javalibusb.c: javalibusb1_libusb1.h javalibusb1_impl_Libusb1UsbDevice.h javalibusb1_impl_Libusb1UsbInterface.h
 
 target/classes/javalibusb1/libusb1.class: src/main/java/javalibusb1/libusb1.java
 	mkdir -p target/classes target/test-classes
@@ -30,6 +30,9 @@ javalibusb1_libusb1.h: target/classes/javalibusb1/libusb1.class
 
 javalibusb1_impl_Libusb1UsbDevice.h: target/classes/javalibusb1/impl/Libusb1UsbDevice.class
 	$(JDK_HOME)/bin/javah -classpath $(CLASSPATH) -jni javalibusb1.impl.Libusb1UsbDevice
+
+javalibusb1_impl_Libusb1UsbInterface.h: target/classes/javalibusb1/impl/Libusb1UsbInterface.class
+	$(JDK_HOME)/bin/javah -classpath $(CLASSPATH) -jni javalibusb1.impl.Libusb1UsbInterface
 
 clean: clean-java clean-native
 

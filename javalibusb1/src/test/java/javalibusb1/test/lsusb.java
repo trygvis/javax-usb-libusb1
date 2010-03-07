@@ -5,6 +5,7 @@ import javax.usb.util.UsbUtil;
 import java.util.List;
 
 import static javax.usb.util.UsbUtil.*;
+import static javax.usb.util.UsbUtil.toHexString;
 
 public class lsusb {
     public static void main(String[] args) throws UsbException {
@@ -66,7 +67,7 @@ public class lsusb {
             UsbConfigurationDescriptor configurationDescriptor = usbConfiguration.getUsbConfigurationDescriptor();
             System.out.println(" Configuration #" + i);
             System.out.println(String.format("  %-17s %8s", "bConfigurationValue", configurationDescriptor.bConfigurationValue()));
-            System.out.println(String.format("  %-17s %10s", "bmAttributes", "0x" + UsbUtil.toHexString(configurationDescriptor.bmAttributes())));
+            System.out.println(String.format("  %-17s %10s", "bmAttributes", "0x" + toHexString(configurationDescriptor.bmAttributes())));
             System.out.println(String.format("  %-17s %10s", "bMaxPower", configurationDescriptor.bMaxPower()));
             System.out.println(String.format("  %-17s %10s", "bNumInterfaces", unsignedInt(configurationDescriptor.bNumInterfaces())));
             System.out.println(String.format("  %-17s %10s %s", "iConfiguration", unsignedInt(configurationDescriptor.iConfiguration()), getString(usbDevice, configurationDescriptor.iConfiguration())));
@@ -85,11 +86,28 @@ public class lsusb {
                 System.out.println(String.format("   %-16s %8s", "bInterfaceSubClass", unsignedInt(interfaceDescriptor.bInterfaceSubClass())));
                 System.out.println(String.format("   %-16s %10s", "bNumEndpoints", unsignedInt(interfaceDescriptor.bNumEndpoints())));
                 System.out.println(String.format("   %-16s %10s %s", "iInterface", unsignedInt(interfaceDescriptor.iInterface()), getString(usbDevice, interfaceDescriptor.iInterface())));
+
+                List<UsbEndpoint> endpoints = usbInterface.getUsbEndpoints();
+                for(int k = 0; k < endpoints.size(); k++){
+                    UsbEndpoint endpoint = endpoints.get(k);
+                    UsbEndpointDescriptor endpointDescriptor = endpoint.getUsbEndpointDescriptor();
+                    System.out.println("   Endpoint #" + k);
+                    System.out.println(String.format("    %-15s %10s", "Direction", endpoint.getDirection() == UsbConst.ENDPOINT_DIRECTION_IN ? "in" : "out"));
+                    System.out.println(String.format("    %-15s %10s", "Type", endpoint.getType()));
+                    System.out.println(String.format("    %-15s %9s", "bEndpointAddress", "0x" + toHexString(((byte) endpointDescriptor.bEndpointAddress() & ~UsbConst.ENDPOINT_DIRECTION_MASK))));
+                    System.out.println(String.format("    %-15s %10s", "bInterval", unsignedInt(endpointDescriptor.bInterval())));
+                    System.out.println(String.format("    %-15s %10s", "bmAttributes", endpointDescriptor.bmAttributes()));
+                    System.out.println(String.format("    %-15s %10s", "wMaxPacketSize", endpointDescriptor.wMaxPacketSize()));
+                }
             }
         }
     }
 
     private static String getString(UsbDevice device, byte index) {
+        if(index == 0) {
+            return "";
+        }
+
         try {
             return device.getString(index);
         } catch (UsbException e) {

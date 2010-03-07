@@ -6,12 +6,12 @@ import java.util.List;
 
 public class Libusb1UsbConfiguration implements UsbConfiguration {
 
-    public final UsbDevice device;
+    public final Libusb1UsbDevice device;
     public final UsbConfigurationDescriptor configurationDescriptor;
     public final UsbInterface[][] interfaces;
     private boolean active;
 
-    public Libusb1UsbConfiguration(UsbDevice device, UsbConfigurationDescriptor configurationDescriptor, UsbInterface[][] interfaces, boolean active) {
+    public Libusb1UsbConfiguration(Libusb1UsbDevice device, UsbConfigurationDescriptor configurationDescriptor, UsbInterface[][] interfaces, boolean active) {
         this.device = device;
         this.configurationDescriptor = configurationDescriptor;
         this.interfaces = interfaces;
@@ -73,5 +73,14 @@ public class Libusb1UsbConfiguration implements UsbConfiguration {
 
     public boolean isActive() {
         return active;
+    }
+
+    // -----------------------------------------------------------------------
+    // For native methods
+    // -----------------------------------------------------------------------
+
+    public void setActive(boolean active) {
+        // TODO: Mark the other configurations as "inactive"
+        this.active = active;
     }
 }

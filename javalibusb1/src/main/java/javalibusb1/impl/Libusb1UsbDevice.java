@@ -16,7 +16,7 @@ public class Libusb1UsbDevice implements UsbDevice, Closeable {
      * Used by the native code
      */
     @SuppressWarnings({"FieldCanBeLocal", "UnusedDeclaration"})
-    private final int libusb_device;
+    final int libusb_device;
     public final byte busNumber;
     public final byte deviceAddress;
     private final UsbDeviceDescriptor usbDeviceDescriptor;

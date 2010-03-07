@@ -12,7 +12,7 @@ jfieldID usb_services_context_field;
 /* javalibusb1.impl.Libusb1UsbDevice */
 jclass libusb1UsbDeviceClass = NULL;
 jmethodID libusb1UsbDeviceConstructor = NULL;
-jfieldID libusb_device_field;
+jfieldID device_libusb_device_field;
 
 /* javalibusb1.impl.Libusb1UsbConfiguration */
 jclass libusb1UsbConfigurationClass = NULL;
@@ -21,6 +21,11 @@ jmethodID libusb1UsbConfigurationConstructor = NULL;
 /* javalibusb1.impl.Libusb1UsbInterface */
 jclass libusb1UsbInterfaceClass = NULL;
 jmethodID libusb1UsbInterfaceConstructor = NULL;
+jfieldID interface_libusb_device_field;
+
+/* javalibusb1.impl.Libusb1UsbEndpoint */
+jclass libusb1UsbEndpointClass = NULL;
+jmethodID libusb1UsbEndpointConstructor = NULL;
 
 /* javax.usb.UsbDeviceDescriptor */
 jclass usbDeviceDescriptorClass = NULL;
@@ -34,6 +39,12 @@ jclass usbInterfaceArrayClass = NULL;
 
 /* javax.usb.UsbInterfaceDescriptor */
 jclass usbInterfaceDescriptorClass = NULL;
+
+/* javax.usb.UsbEndpoint */
+jclass usbEndpointClass = NULL;
+
+/* javax.usb.UsbEndpointDescriptor */
+jclass usbEndpointDescriptorClass = NULL;
 
 /* javax.usb.UsbPlatformException */
 jclass usbPlatformExceptionClass = NULL;
@@ -53,6 +64,10 @@ jmethodID defaultUsbConfigurationDescriptorConstructor = NULL;
 /* javax.usb.impl.DefaultUsbInterfaceDescriptor */
 jclass defaultUsbInterfaceDescriptorClass = NULL;
 jmethodID defaultUsbInterfaceDescriptorConstructor = NULL;
+
+/* javax.usb.impl.DefaultUsbEndpointDescriptor */
+jclass defaultUsbEndpointDescriptorClass = NULL;
+jmethodID defaultUsbEndpointDescriptorConstructor = NULL;
 
 struct usb_services_context {
     struct libusb_context* libusb_context;
@@ -121,7 +136,7 @@ static jobject config_descriptor2java(JNIEnv *env, const struct libusb_config_de
         config_descriptor->wTotalLength);
 }
 
-static jobject interface_descriptor2java(JNIEnv *env, const struct libusb_interface_descriptor* interface_descriptor) {
+static jobject interface_descriptor2java(JNIEnv *env, const struct libusb_interface_descriptor *interface_descriptor) {
     return (*env)->NewObject(env, defaultUsbInterfaceDescriptorClass, defaultUsbInterfaceDescriptorConstructor,
         interface_descriptor->bAlternateSetting,
         interface_descriptor->bInterfaceClass,
@@ -132,22 +147,47 @@ static jobject interface_descriptor2java(JNIEnv *env, const struct libusb_interf
         interface_descriptor->iInterface);
 }
 
+static jobject endpoint_descriptor2java(JNIEnv *env, const struct libusb_endpoint_descriptor *endpoint_descriptor) {
+    return (*env)->NewObject(env, defaultUsbEndpointDescriptorClass, defaultUsbEndpointDescriptorConstructor,
+        endpoint_descriptor->bEndpointAddress,
+        endpoint_descriptor->bInterval,
+        endpoint_descriptor->bmAttributes,
+        endpoint_descriptor->wMaxPacketSize);
+}
+
 static jobject config_descriptor2usbConfiguration(JNIEnv *env, jobject usbDevice, const struct libusb_config_descriptor* config_descriptor, jboolean known_active, int config_value) {
     const struct libusb_interface *interface = NULL;
+    const struct libusb_interface_descriptor *interface_descriptor;
+    const struct libusb_endpoint_descriptor *endpoint_descriptor;
+    jobject usbConfiguration;
     jobject usbConfigurationDescriptor;
     jobjectArray interfacesArrayArray, interfacesArray;
-    jobject usbInterfaceDescriptor;
-    jobjectArray usbInterfaceDescriptors;
     jobject usbInterface;
     jboolean interface_active;
-    int i, j;
+    jobject usbInterfaceDescriptor;
+    jobject usbEndpoint;
+    jobject usbEndpointDescriptor;
+    jobjectArray endpoints;
+    int i, j, k;
 
-    j = 0; usbInterfaceDescriptors = NULL; usbInterfaceDescriptor = NULL;
     if((usbConfigurationDescriptor = config_descriptor2java(env, config_descriptor)) == NULL) {
         return NULL;
     }
 
     if((interfacesArrayArray = (*env)->NewObjectArray(env, config_descriptor->bNumInterfaces, usbInterfaceArrayClass, NULL)) == NULL) {
+        return NULL;
+    }
+
+
+    // If the device is not known to be active, but the bConfigurationValue matches the currently
+    // active configuration value, then it's active
+    if(!known_active && config_value == config_descriptor->bConfigurationValue) {
+        known_active = JNI_TRUE;
+    }
+
+    usbConfiguration = (*env)->NewObject(env, libusb1UsbConfigurationClass, libusb1UsbConfigurationConstructor,
+        usbDevice, usbConfigurationDescriptor, interfacesArrayArray, known_active);
+    if(usbConfiguration == NULL) {
         return NULL;
     }
 
@@ -164,8 +204,14 @@ static jobject config_descriptor2usbConfiguration(JNIEnv *env, jobject usbDevice
         }
 
         for(j = 0; j < interface->num_altsetting; j++) {
-            usbInterfaceDescriptor = interface_descriptor2java(env, &interface->altsetting[j]);
+            interface_descriptor = &interface->altsetting[j];
+
+            usbInterfaceDescriptor = interface_descriptor2java(env, interface_descriptor);
             if(usbInterfaceDescriptor == NULL) {
+                return NULL;
+            }
+
+            if((endpoints = (*env)->NewObjectArray(env, interface_descriptor->bNumEndpoints, usbEndpointClass, NULL)) == NULL) {
                 return NULL;
             }
 
@@ -174,27 +220,35 @@ static jobject config_descriptor2usbConfiguration(JNIEnv *env, jobject usbDevice
             interface_active = j == 0;
 
             usbInterface = (*env)->NewObject(env, libusb1UsbInterfaceClass, libusb1UsbInterfaceConstructor,
-                usbInterfaceDescriptors, usbInterfaceDescriptor, interface_active);
+                usbConfiguration, usbInterfaceDescriptor, endpoints, interface_active);
             if(usbInterface == NULL) {
                 return NULL;
             }
-    
+
+            for(k = 0; k < interface_descriptor->bNumEndpoints; k++) {
+                endpoint_descriptor = &interface_descriptor->endpoint[k];
+                usbEndpointDescriptor = endpoint_descriptor2java(env, endpoint_descriptor);
+                if(usbEndpointDescriptor == NULL) {
+                    return NULL;
+                }
+
+                usbEndpoint = (*env)->NewObject(env, libusb1UsbEndpointClass, libusb1UsbEndpointConstructor,
+                    usbInterface, endpoint_descriptor->bDescriptorType, usbEndpointDescriptor);
+
+                (*env)->SetObjectArrayElement(env, endpoints, k, usbEndpoint);
+                if((*env)->ExceptionCheck(env)) {
+                    return NULL;
+                }
+            }
+
             (*env)->SetObjectArrayElement(env, interfacesArray, j, usbInterface);
             if((*env)->ExceptionCheck(env)) {
                 return NULL;
             }
-
         }
     }
 
-    // If the device is not known to be active, but the bConfigurationValue matches the currently
-    // active configuration value, then it's active
-    if(!known_active && config_value == config_descriptor->bConfigurationValue) {
-        known_active = JNI_TRUE;
-    }
-
-    return (*env)->NewObject(env, libusb1UsbConfigurationClass, libusb1UsbConfigurationConstructor,
-        usbDevice, usbConfigurationDescriptor, interfacesArrayArray, known_active);
+    return usbConfiguration;
 }
 
 JNIEXPORT void JNICALL Java_javalibusb1_libusb1_set_1trace_1calls
@@ -219,21 +273,31 @@ JNIEXPORT jobject JNICALL Java_javalibusb1_libusb1_create
     if((libusb1UsbDeviceConstructor = (*env)->GetMethodID(env, libusb1UsbDeviceClass, "<init>", "(IBBLjavax/usb/UsbDeviceDescriptor;)V")) == NULL) {
         return NULL;
     }
-    if((libusb_device_field = (*env)->GetFieldID(env, libusb1UsbDeviceClass, "libusb_device", "I")) == NULL) {
+    if((device_libusb_device_field = (*env)->GetFieldID(env, libusb1UsbDeviceClass, "libusb_device", "I")) == NULL) {
         goto fail;
     }
 
     if((libusb1UsbConfigurationClass = findAndReferenceClass(env, "javalibusb1/impl/Libusb1UsbConfiguration")) == NULL) {
         return NULL;
     }
-    if((libusb1UsbConfigurationConstructor = (*env)->GetMethodID(env, libusb1UsbConfigurationClass, "<init>", "(Ljavax/usb/UsbDevice;Ljavax/usb/UsbConfigurationDescriptor;[[Ljavax/usb/UsbInterface;Z)V")) == NULL) {
+    if((libusb1UsbConfigurationConstructor = (*env)->GetMethodID(env, libusb1UsbConfigurationClass, "<init>", "(Ljavalibusb1/impl/Libusb1UsbDevice;Ljavax/usb/UsbConfigurationDescriptor;[[Ljavax/usb/UsbInterface;Z)V")) == NULL) {
         return NULL;
     }
 
     if((libusb1UsbInterfaceClass = findAndReferenceClass(env, "javalibusb1/impl/Libusb1UsbInterface")) == NULL) {
         return NULL;
     }
-    if((libusb1UsbInterfaceConstructor = (*env)->GetMethodID(env, libusb1UsbInterfaceClass, "<init>", "(Ljavax/usb/UsbConfiguration;Ljavax/usb/UsbInterfaceDescriptor;Z)V")) == NULL) {
+    if((libusb1UsbInterfaceConstructor = (*env)->GetMethodID(env, libusb1UsbInterfaceClass, "<init>", "(Ljavalibusb1/impl/Libusb1UsbConfiguration;Ljavax/usb/UsbInterfaceDescriptor;[Ljavax/usb/UsbEndpoint;Z)V")) == NULL) {
+        return NULL;
+    }
+    if((interface_libusb_device_field = (*env)->GetFieldID(env, libusb1UsbInterfaceClass, "libusb_device", "I")) == NULL) {
+        goto fail;
+    }
+
+    if((libusb1UsbEndpointClass = findAndReferenceClass(env, "javalibusb1/impl/Libusb1UsbEndpoint")) == NULL) {
+        return NULL;
+    }
+    if((libusb1UsbEndpointConstructor = (*env)->GetMethodID(env, libusb1UsbEndpointClass, "<init>", "(Ljavalibusb1/impl/Libusb1UsbInterface;BLjavax/usb/UsbEndpointDescriptor;)V")) == NULL) {
         return NULL;
     }
 
@@ -253,6 +317,14 @@ JNIEXPORT jobject JNICALL Java_javalibusb1_libusb1_create
     }
 
     if((usbInterfaceDescriptorClass = findAndReferenceClass(env, "javax/usb/UsbInterfaceDescriptor")) == NULL) {
+        return NULL;
+    }
+
+    if((usbEndpointClass = findAndReferenceClass(env, "javax/usb/UsbEndpoint")) == NULL) {
+        return NULL;
+    }
+
+    if((usbEndpointDescriptorClass = findAndReferenceClass(env, "javax/usb/UsbEndpointDescriptor")) == NULL) {
         return NULL;
     }
 
@@ -288,6 +360,13 @@ JNIEXPORT jobject JNICALL Java_javalibusb1_libusb1_create
         return NULL;
     }
 
+    if((defaultUsbEndpointDescriptorClass = findAndReferenceClass(env, "javax/usb/impl/DefaultUsbEndpointDescriptor")) == NULL) {
+        return NULL;
+    }
+    if((defaultUsbEndpointDescriptorConstructor = (*env)->GetMethodID(env, defaultUsbEndpointDescriptorClass, "<init>", "(BBBS)V")) == NULL) {
+        return NULL;
+    }
+
     /* Initialization */
     context = malloc(sizeof(struct usb_services_context));
 
@@ -318,16 +397,20 @@ JNIEXPORT void JNICALL Java_javalibusb1_libusb1_close
     unreferenceClass(env, &libusb1UsbDeviceClass);
     unreferenceClass(env, &libusb1UsbConfigurationClass);
     unreferenceClass(env, &libusb1UsbInterfaceClass);
+    unreferenceClass(env, &libusb1UsbEndpointClass);
     unreferenceClass(env, &usbDeviceDescriptorClass);
     unreferenceClass(env, &usbConfigurationClass);
     unreferenceClass(env, &usbInterfaceClass);
     unreferenceClass(env, &usbInterfaceArrayClass);
     unreferenceClass(env, &usbInterfaceDescriptorClass);
+    unreferenceClass(env, &usbEndpointClass);
+    unreferenceClass(env, &usbEndpointDescriptorClass);
     unreferenceClass(env, &usbPlatformExceptionClass);
     unreferenceClass(env, &usbDisconnectedExceptionClass);
     unreferenceClass(env, &defaultUsbDeviceDescriptorClass);
     unreferenceClass(env, &defaultUsbConfigurationDescriptorClass);
     unreferenceClass(env, &defaultUsbInterfaceDescriptorClass);
+    unreferenceClass(env, &defaultUsbEndpointDescriptorClass);
 
     usbw_exit(context->libusb_context);
     free(context);
@@ -411,13 +494,13 @@ JNIEXPORT void JNICALL Java_javalibusb1_impl_Libusb1UsbDevice_closeNative
 {
     struct libusb_device *device;
 
-    device = (struct libusb_device*)(*env)->GetIntField(env, obj, libusb_device_field);
+    device = (struct libusb_device*)(*env)->GetIntField(env, obj, device_libusb_device_field);
 
     if(device == 0) {
         return;
     }
 
-    (*env)->SetIntField(env, obj, libusb_device_field, 0);
+    (*env)->SetIntField(env, obj, device_libusb_device_field, 0);
 
     usbw_unref_device(device);
 }
@@ -431,7 +514,7 @@ JNIEXPORT jstring JNICALL Java_javalibusb1_impl_Libusb1UsbDevice_getStringNative
     jstring s = NULL;
     int err;
 
-    device = (struct libusb_device*)(*env)->GetIntField(env, obj, libusb_device_field);
+    device = (struct libusb_device*)(*env)->GetIntField(env, obj, device_libusb_device_field);
 
     data = malloc(sizeof(unsigned char) * length);
 
@@ -469,7 +552,7 @@ JNIEXPORT jobject JNICALL Java_javalibusb1_impl_Libusb1UsbDevice_nativeGetActive
     jobject usbConfiguration;
     int err;
 
-    device = (struct libusb_device*)(*env)->GetIntField(env, usbDevice, libusb_device_field);
+    device = (struct libusb_device*)(*env)->GetIntField(env, usbDevice, device_libusb_device_field);
 
     /* On Darwin the device has to be open while querying for the descriptor */
 
@@ -502,7 +585,7 @@ JNIEXPORT jobject JNICALL Java_javalibusb1_impl_Libusb1UsbDevice_nativeGetUsbCon
     int config;
     int err;
 
-    device = (struct libusb_device*)(*env)->GetIntField(env, usbDevice, libusb_device_field);
+    device = (struct libusb_device*)(*env)->GetIntField(env, usbDevice, device_libusb_device_field);
 
     /* On Darwin the device has to be open while querying for the descriptor */
 
@@ -528,4 +611,63 @@ fail:
     usbw_free_config_descriptor(config_descriptor);
 
     return usbConfiguration;
+}
+
+// -----------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------
+
+JNIEXPORT void JNICALL Java_javalibusb1_impl_Libusb1UsbInterface_nativeSetConfiguration
+  (JNIEnv *env, jobject obj, jint configuration)
+{
+    struct libusb_device *device;
+    struct libusb_device_handle *handle;
+    int err;
+
+    device = (struct libusb_device*)(*env)->GetIntField(env, obj, interface_libusb_device_field);
+
+    if((err = usbw_open(device, &handle))) {
+        throwPlatformExceptionMsgCode(env, "libusb_open()", err);
+        return;
+    }
+
+    if((err = usbw_set_configuration(handle, configuration))) {
+        throwPlatformExceptionMsgCode(env, "libusb_set_configuration()", err);
+        goto fail;
+    };
+
+fail:
+    usbw_close(handle);
+}
+
+JNIEXPORT jint JNICALL Java_javalibusb1_impl_Libusb1UsbInterface_nativeClaimInterface
+  (JNIEnv *env, jobject obj, jint bInterfaceNumber)
+{
+    struct libusb_device *device;
+    struct libusb_device_handle *handle;
+    int err;
+
+    device = (struct libusb_device*)(*env)->GetIntField(env, obj, interface_libusb_device_field);
+
+    if((err = usbw_open(device, &handle))) {
+        throwPlatformExceptionMsgCode(env, "libusb_open()", err);
+        return 0;
+    }
+
+    if((err = usbw_claim_interface(handle, bInterfaceNumber))) {
+        throwPlatformExceptionMsgCode(env, "libusb_claim_interface()", err);
+        goto fail;
+    };
+
+    return (jint)handle;
+
+fail:
+    usbw_close(handle);
+    return 0;
+}
+
+JNIEXPORT void JNICALL Java_javalibusb1_impl_Libusb1UsbInterface_nativeRelease
+  (JNIEnv *env, jobject obj, jint handle)
+{
+    usbw_close((struct libusb_device_handle*)handle);
 }

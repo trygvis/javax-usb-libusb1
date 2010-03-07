@@ -4,9 +4,9 @@ import java.util.List;
 
 public interface UsbInterface {
 
-    void claim();
+    void claim() throws UsbException;
 
-    void claim(UsbInterfacePolicy policy);
+    void claim(UsbInterfacePolicy policy) throws UsbException;
 
     boolean containsSetting(byte number);
 
@@ -36,5 +36,5 @@ public interface UsbInterface {
 
     boolean isClaimed();
 
-    void release();
+    void release() throws UsbException;
 }

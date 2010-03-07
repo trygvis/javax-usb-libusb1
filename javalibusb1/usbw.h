@@ -25,6 +25,8 @@ void usbw_unref_device(struct libusb_device *device);
 int usbw_open(struct libusb_device *device, struct libusb_device_handle **handle);
 void usbw_close(struct libusb_device_handle *handle);
 int usbw_get_configuration(struct libusb_device_handle *handle, int *config);
+int usbw_set_configuration(struct libusb_device_handle *handle, int configuration);
+int usbw_claim_interface(struct libusb_device_handle *device, int interface_number);
 
 /*************************************************************************
  * USB descriptors

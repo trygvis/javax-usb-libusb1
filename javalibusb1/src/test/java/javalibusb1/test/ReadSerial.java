@@ -21,8 +21,17 @@ public class ReadSerial {
         UsbConfiguration configuration = device.getActiveUsbConfiguration();
 
         UsbInterface usbInterface = configuration.getUsbInterface((byte)0);
-        System.out.println("usbInterface.getUsbInterfaceDescriptor().bInterfaceNumber() = " + usbInterface.getUsbInterfaceDescriptor().bInterfaceNumber());
-//        configuration.getUsbInterfaces()
+
+        usbInterface.claim();
+
+        UsbEndpoint inEndpoint = usbInterface.getUsbEndpoint((byte) 0x02);
+        UsbPipe inPipe = inEndpoint.getUsbPipe();
+
+        UsbEndpoint outEndpoint = usbInterface.getUsbEndpoint((byte) 0x81);
+        UsbPipe outPipe = outEndpoint.getUsbPipe();
+
+        inPipe.close();
+        outPipe.close();
     }
 
     public static UsbDevice findDeviceByVendorAndProduct(UsbHub usbHub, short idVendor, short idProduct) {

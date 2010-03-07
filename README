@@ -1,0 +1,4 @@
+Technical Implementation Details
+
+The device and handle references are stored internally in the Device and Interface classes
+as integers. These should be byte arrays to be a bit more generic.
