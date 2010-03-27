@@ -1,21 +1,22 @@
 package javax.usb;
 
-import java.util.List;
+import javax.usb.event.*;
+import java.util.*;
 
 public interface UsbDevice {
     // -----------------------------------------------------------------------
     //
     // -----------------------------------------------------------------------
 
-    String getManufacturerString() throws UsbException;
+    String getManufacturerString() throws UsbException, java.io.UnsupportedEncodingException, UsbDisconnectedException;
 
-    String getSerialNumberString() throws UsbException;
+    String getSerialNumberString() throws UsbException, java.io.UnsupportedEncodingException, UsbDisconnectedException;
 
-    String getProductString() throws UsbException;
+    String getProductString() throws UsbException, java.io.UnsupportedEncodingException, UsbDisconnectedException;
 
     UsbStringDescriptor getUsbStringDescriptor(byte index);
 
-    String getString(byte index) throws UsbException;
+    String getString(byte index) throws UsbException, UsbDisconnectedException;
 
     // -----------------------------------------------------------------------
     //
@@ -29,26 +30,25 @@ public interface UsbDevice {
     //
     // -----------------------------------------------------------------------
 
-//    void addUsbDeviceListener(UsbDeviceListener listener);
-//
-//    void removeUsbDeviceListener(UsbDeviceListener listener);
+    void addUsbDeviceListener(UsbDeviceListener listener);
+
+    void removeUsbDeviceListener(UsbDeviceListener listener);
 
     // -----------------------------------------------------------------------
     //
     // -----------------------------------------------------------------------
 
-//    UsbControlIrp createUsbControlIrp(byte bmRequestType, byte bRequest, short wValue, short wIndex);
-//
-//    void asyncSubmit(List<UsbControlIrp> list);
-//
-//    void asyncSubmit(UsbControlIrp irp);
-//
-//    void syncSubmit(List<UsbControlIrp> list);
-//
-//    void syncSubmit(UsbControlIrp irp);
-//
-//    UsbPort getParentUsbPort();
-//
+    UsbControlIrp createUsbControlIrp(byte bmRequestType, byte bRequest, short wValue, short wIndex);
+
+    void asyncSubmit(List<UsbControlIrp> list) throws UsbException, IllegalArgumentException, UsbDisconnectedException;
+
+    void asyncSubmit(UsbControlIrp irp) throws UsbException, IllegalArgumentException, UsbDisconnectedException;
+
+    void syncSubmit(List<UsbControlIrp> list) throws UsbException, IllegalArgumentException, UsbDisconnectedException;
+
+    void syncSubmit(UsbControlIrp irp) throws UsbException, IllegalArgumentException, UsbDisconnectedException;
+
+    UsbPort getParentUsbPort() throws UsbDisconnectedException;
 
     UsbConfiguration getActiveUsbConfiguration() throws UsbPlatformException;
 

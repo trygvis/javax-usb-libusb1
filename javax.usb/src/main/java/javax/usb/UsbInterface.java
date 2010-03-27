@@ -1,22 +1,24 @@
 package javax.usb;
 
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
+@SuppressWarnings({"DuplicateThrows"})
 public interface UsbInterface {
 
-    void claim() throws UsbException;
+    void claim() throws UsbClaimException, UsbException, UsbNotActiveException, UsbDisconnectedException;
 
-    void claim(UsbInterfacePolicy policy) throws UsbException;
+    void claim(UsbInterfacePolicy policy) throws UsbClaimException, UsbException, UsbNotActiveException, UsbDisconnectedException;
 
     boolean containsSetting(byte number);
 
     boolean containsUsbEndpoint(byte address);
 
-    UsbInterface getActiveSetting();
+    UsbInterface getActiveSetting() throws UsbNotActiveException;
 
-    byte getActiveSettingNumber();
+    byte getActiveSettingNumber() throws UsbNotActiveException;
 
-    java.lang.String getInterfaceString() throws UsbException;
+    java.lang.String getInterfaceString() throws UsbException, UnsupportedEncodingException, UsbDisconnectedException;
 
     int getNumSettings();
 
@@ -36,5 +38,5 @@ public interface UsbInterface {
 
     boolean isClaimed();
 
-    void release() throws UsbException;
+    void release() throws UsbClaimException, UsbException, UsbNotActiveException, UsbDisconnectedException;
 }

@@ -1,8 +1,8 @@
 package javax.usb.impl;
 
-import javax.usb.UsbInterfaceDescriptor;
+import javax.usb.*;
 
-public class DefaultUsbInterfaceDescriptor implements UsbInterfaceDescriptor {
+public class DefaultUsbInterfaceDescriptor extends DefaultUsbDescriptor implements UsbInterfaceDescriptor {
     public final byte bAlternateSetting;
     public final byte bInterfaceClass;
     public final byte bInterfaceNumber;
@@ -12,6 +12,7 @@ public class DefaultUsbInterfaceDescriptor implements UsbInterfaceDescriptor {
     public final byte iInterface;
 
     public DefaultUsbInterfaceDescriptor(byte bAlternateSetting, byte bInterfaceClass, byte bInterfaceNumber, byte bInterfaceProtocol, byte bInterfaceSubClass, byte bNumEndpoints, byte iInterface) {
+        super(UsbConst.DESCRIPTOR_TYPE_INTERFACE, (byte)9);
         this.bAlternateSetting = bAlternateSetting;
         this.bInterfaceClass = bInterfaceClass;
         this.bInterfaceNumber = bInterfaceNumber;

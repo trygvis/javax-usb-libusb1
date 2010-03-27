@@ -1,21 +1,20 @@
 package javax.usb;
 
-import javax.usb.event.UsbPipeListener;
-import java.util.List;
+import javax.usb.event.*;
+import java.util.*;
 
-@SuppressWarnings({"DuplicateThrows"})
 public interface UsbPipe {
-    void abortAllSubmissions();
+    void abortAllSubmissions() throws UsbNotActiveException, UsbNotOpenException, UsbDisconnectedException;
 
     void addUsbPipeListener(UsbPipeListener listener);
 
-    UsbIrp asyncSubmit(byte[] data);
+    UsbIrp asyncSubmit(byte[] data) throws UsbException, UsbNotActiveException, UsbNotOpenException, IllegalArgumentException, UsbDisconnectedException;
 
-    void asyncSubmit(List list);
+    void asyncSubmit(List list) throws UsbException, UsbNotActiveException, UsbNotOpenException, IllegalArgumentException, UsbDisconnectedException;
 
-    void asyncSubmit(UsbIrp irp);
+    void asyncSubmit(UsbIrp irp) throws UsbException, UsbNotActiveException, UsbNotOpenException, IllegalArgumentException, UsbDisconnectedException;
 
-    void close();
+    void close() throws UsbException, UsbNotActiveException, UsbNotOpenException, UsbDisconnectedException;
 
     UsbControlIrp createUsbControlIrp(byte bmRequestType, byte bRequest, short wValue, short wIndex);
 
@@ -31,9 +30,9 @@ public interface UsbPipe {
 
     void removeUsbPipeListener(UsbPipeListener listener);
 
-    int syncSubmit(byte[] data) throws UsbException, UsbNotActiveException, UsbNotOpenException, java.lang.IllegalArgumentException;
+    int syncSubmit(byte[] data) throws UsbException, UsbNotActiveException, UsbNotOpenException, IllegalArgumentException, UsbDisconnectedException;
 
-    void syncSubmit(List<UsbIrp> list) throws UsbException, UsbNotActiveException, UsbNotOpenException, java.lang.IllegalArgumentException;
+    void syncSubmit(List<UsbIrp> list) throws UsbException, UsbNotActiveException, UsbNotOpenException, IllegalArgumentException, UsbDisconnectedException;
 
-    void syncSubmit(UsbIrp irp) throws UsbException, UsbNotActiveException, UsbNotOpenException, java.lang.IllegalArgumentException;
+    void syncSubmit(UsbIrp irp) throws UsbException, UsbNotActiveException, UsbNotOpenException, IllegalArgumentException, UsbDisconnectedException;
 }

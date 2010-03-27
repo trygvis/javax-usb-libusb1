@@ -38,7 +38,11 @@ public class DefaultUsbIrp implements UsbIrp {
         return actualLength;
     }
 
-    public void setActualLength(int actualLength) {
+    public void setActualLength(int actualLength) throws IllegalArgumentException{
+        if (length < 0) {
+            throw new IllegalArgumentException("length < 0");
+        }
+
         this.actualLength = actualLength;
     }
 
@@ -54,11 +58,11 @@ public class DefaultUsbIrp implements UsbIrp {
         return data;
     }
 
-    public void setData(byte[] data) {
+    public void setData(byte[] data) throws IllegalArgumentException {
         setData(data, 0, data.length);
     }
 
-    public void setData(byte[] data, int offset, int length) {
+    public void setData(byte[] data, int offset, int length) throws IllegalArgumentException {
         this.data = data;
         setOffset(offset);
         setLength(length);
@@ -68,7 +72,7 @@ public class DefaultUsbIrp implements UsbIrp {
         return length;
     }
 
-    public void setLength(int length) {
+    public void setLength(int length) throws IllegalArgumentException {
         if (length < 0) {
             throw new IllegalArgumentException("length < 0");
         }
@@ -79,7 +83,7 @@ public class DefaultUsbIrp implements UsbIrp {
         return offset;
     }
 
-    public void setOffset(int offset) {
+    public void setOffset(int offset) throws IllegalArgumentException {
         if (offset < 0) {
             throw new IllegalArgumentException("offset < 0");
         }

@@ -1,6 +1,7 @@
 package javalibusb1;
 
 import javax.usb.*;
+import javax.usb.event.*;
 import javax.usb.impl.AbstractRootUsbHub;
 import javax.usb.impl.DefaultUsbDeviceDescriptor;
 import java.io.IOException;
@@ -56,7 +57,7 @@ public class Libusb1UsbServices implements UsbServices {
                 }
             }
         } catch (IOException e) {
-            throw new UsbException("Error while reading configuration file.", e);
+            throw new UsbPlatformException("Error while reading configuration file.", e);
         } finally {
             try {
                 if (stream != null) {
@@ -86,13 +87,19 @@ public class Libusb1UsbServices implements UsbServices {
         return "1.0.1";
     }
 
-    public String getImplDescription() {
-        return "Usb for Java";
+    public String getImpDescription() {
+        return "Usb for Java with libusb-1.0";
     }
 
-    public String getImplVersion() {
+    public String getImpVersion() {
         // TODO: Load from Maven artifact
         return "1.0-SNAPSHOT";
+    }
+
+    public void addUsbServicesListener(UsbServicesListener listener) {
+    }
+
+    public void removeUsbServicesListener(UsbServicesListener listener) {
     }
 
     public UsbHub getRootUsbHub() {

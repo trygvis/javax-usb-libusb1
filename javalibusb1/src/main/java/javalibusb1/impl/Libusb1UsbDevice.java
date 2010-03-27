@@ -1,6 +1,7 @@
 package javalibusb1.impl;
 
 import javax.usb.*;
+import javax.usb.event.*;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -63,6 +64,38 @@ public class Libusb1UsbDevice implements UsbDevice, Closeable {
 
     public boolean isUsbHub() {
         return false;
+    }
+
+    public void addUsbDeviceListener(UsbDeviceListener listener) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public void removeUsbDeviceListener(UsbDeviceListener listener) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public UsbControlIrp createUsbControlIrp(byte bmRequestType, byte bRequest, short wValue, short wIndex) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public void asyncSubmit(List<UsbControlIrp> list) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public void asyncSubmit(UsbControlIrp irp) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public void syncSubmit(List<UsbControlIrp> list) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public void syncSubmit(UsbControlIrp irp) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public UsbPort getParentUsbPort() throws UsbDisconnectedException {
+        throw new RuntimeException("Not implemented");
     }
 
     public UsbConfiguration getActiveUsbConfiguration() throws UsbPlatformException {

@@ -11,8 +11,4 @@ public class UsbException extends Exception {
     public UsbException(String message) {
         super(message);
     }
-
-    public UsbException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }

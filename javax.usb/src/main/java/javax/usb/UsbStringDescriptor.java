@@ -1,7 +1,9 @@
 package javax.usb;
 
-public interface UsbStringDescriptor {
+import java.io.*;
+
+public interface UsbStringDescriptor extends UsbDescriptor {
     byte[] bString();
 
-    String getString();
+    String getString() throws UnsupportedEncodingException;
 }

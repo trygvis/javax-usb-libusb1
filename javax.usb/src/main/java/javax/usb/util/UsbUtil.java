@@ -1,7 +1,6 @@
 package javax.usb.util;
 
-import java.io.Closeable;
-import java.io.IOException;
+import java.io.*;
 
 public class UsbUtil {
 
@@ -46,8 +45,8 @@ public class UsbUtil {
     // To Unsigned
     // -----------------------------------------------------------------------
 
-    public static int unsignedShort(byte b) {
-        return 0x00ff & b;
+    public static short unsignedShort(byte b) {
+        return (short) (0x00ff & b);
     }
 
     public static int unsignedInt(byte b) {

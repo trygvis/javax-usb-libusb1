@@ -1,11 +1,17 @@
 package javax.usb;
 
+import javax.usb.event.*;
+
 public interface UsbServices {
     String getApiVersion();
 
-    String getImplDescription();
+    String getImpDescription();
 
-    String getImplVersion();
+    String getImpVersion();
 
-    UsbHub getRootUsbHub();
+    UsbHub getRootUsbHub() throws UsbException, SecurityException;
+
+    void addUsbServicesListener(UsbServicesListener listener);
+
+    void removeUsbServicesListener(UsbServicesListener listener);
 }

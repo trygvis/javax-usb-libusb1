@@ -1,6 +1,6 @@
 package javax.usb;
 
-public interface UsbInterfaceDescriptor {
+public interface UsbInterfaceDescriptor extends UsbDescriptor {
     byte bAlternateSetting();
 
     byte bInterfaceClass();

@@ -4,7 +4,7 @@ import javax.usb.*;
 import java.util.List;
 
 public class ReadSerial {
-    public static void main(String[] args) throws UsbException {
+    public static void main(String[] args) throws Exception {
         UsbServices usbServices = UsbHostManager.getUsbServices();
 
         UsbDevice device = findDeviceByVendorAndProduct(usbServices.getRootUsbHub(), (short) 0x067b, (short) 0x2303);

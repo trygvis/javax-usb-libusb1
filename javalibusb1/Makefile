@@ -22,10 +22,11 @@ usbw.lo: usbw.c
 
 javalibusb.c: javalibusb1_libusb1.h javalibusb1_impl_Libusb1UsbDevice.h javalibusb1_impl_Libusb1UsbInterface.h javalibusb1_impl_Libusb1UsbPipe.h
 
-target/classes/javalibusb1/libusb1.class: src/main/java/javalibusb1/libusb1.java
+target/classes/javalibusb1/%.class: src/main/java/javalibusb1/libusb1.java
 	mkdir -p target/classes target/test-classes
 	$(JDK_HOME)/bin/javac -classpath $(CLASSPATH) -d target/classes $(shell find src/main/java -name *.java)
 	$(JDK_HOME)/bin/javac -classpath $(CLASSPATH) -d target/test-classes $(shell find src/test/java -name *.java)
+	rsync -a --progress src/main/resources/ target/classes
 
 %.h:
 	rm $@

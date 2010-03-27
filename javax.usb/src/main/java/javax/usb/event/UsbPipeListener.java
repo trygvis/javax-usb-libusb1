@@ -1,6 +1,8 @@
 package javax.usb.event;
 
-public interface UsbPipeListener {
+import java.util.*;
+
+public interface UsbPipeListener extends EventListener {
     void dataEventOccurred(UsbPipeDataEvent event);
 
     void errorEventOccurred(UsbPipeErrorEvent event);

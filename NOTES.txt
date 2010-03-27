@@ -1,0 +1,4 @@
+TCK Notes
+
+ * The TCK should not assert if a method is synchronized or not.
+ * The TCK should not assert private methods. They are PRIVATE.

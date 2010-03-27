@@ -2,6 +2,7 @@ package javalibusb1.impl;
 
 import javax.usb.*;
 import javax.usb.impl.*;
+import java.io.*;
 import java.util.Arrays;
 import java.util.List;
 
@@ -67,7 +68,7 @@ public class Libusb1UsbInterface implements UsbInterface {
         return getActiveSetting().getUsbInterfaceDescriptor().bAlternateSetting();
     }
 
-    public String getInterfaceString() throws UsbException {
+    public String getInterfaceString() throws UsbException, UnsupportedEncodingException {
         return configuration.getUsbDevice().getString(descriptor.iInterface());
     }
 
