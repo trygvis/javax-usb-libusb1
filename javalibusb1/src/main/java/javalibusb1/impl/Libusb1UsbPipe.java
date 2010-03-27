@@ -5,6 +5,8 @@ import javax.usb.UsbEndpoint;
 import javax.usb.UsbIrp;
 import javax.usb.UsbPipe;
 import javax.usb.event.UsbPipeListener;
+import javax.usb.util.DefaultUsbControlIrp;
+import javax.usb.util.DefaultUsbIrp;
 import java.util.List;
 
 public class Libusb1UsbPipe implements UsbPipe {
@@ -45,11 +47,11 @@ public class Libusb1UsbPipe implements UsbPipe {
     }
 
     public UsbControlIrp createUsbControlIrp(byte bmRequestType, byte bRequest, short wValue, short wIndex) {
-        throw new RuntimeException("Not implemented");
+        return new DefaultUsbControlIrp(bmRequestType, bRequest, wValue, wIndex);
     }
 
     public UsbIrp createUsbIrp() {
-        throw new RuntimeException("Not implemented");
+        return new DefaultUsbIrp();
     }
 
     public UsbEndpoint getUsbEndpoint() {
@@ -73,14 +75,38 @@ public class Libusb1UsbPipe implements UsbPipe {
     }
 
     public int syncSubmit(byte[] data) {
-        throw new RuntimeException("Not implemented");
+        UsbIrp irp = new DefaultUsbIrp();
+        irp.setData(data);
+        return internalSyncSubmit(irp);
     }
 
-    public void syncSubmit(List list) {
-        throw new RuntimeException("Not implemented");
+    public void syncSubmit(List<UsbIrp> list) {
+        for (UsbIrp usbIrp : list) {
+            syncSubmit(usbIrp);
+        }
     }
 
     public void syncSubmit(UsbIrp irp) {
+        internalSyncSubmit(irp);
+    }
+
+    // -----------------------------------------------------------------------
+    //
+    // -----------------------------------------------------------------------
+
+    private int internalSyncSubmit(UsbIrp irp) {
+        if(irp.getData() == null) {
+            throw new IllegalArgumentException("data == null");
+        }
+
+        if(irp.getUsbException() != null) {
+            throw new IllegalArgumentException("usbException is not null");
+        }
+
+        if(irp.isComplete()) {
+            throw new IllegalArgumentException("complete == true");
+        }
+
         throw new RuntimeException("Not implemented");
     }
 }

@@ -32,7 +32,7 @@ public interface UsbPipe {
 
     int syncSubmit(byte[] data);
 
-    void syncSubmit(List list);
+    void syncSubmit(List<UsbIrp> list);
 
     void syncSubmit(UsbIrp irp);
 }

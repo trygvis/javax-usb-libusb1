@@ -3,6 +3,7 @@
 *.iwp
 *.la
 *.lo
+*.log
 *.o
 *.so
 *.swp

@@ -233,7 +233,7 @@ static jobject config_descriptor2usbConfiguration(JNIEnv *env, jobject usbDevice
                 }
 
                 usbEndpoint = (*env)->NewObject(env, libusb1UsbEndpointClass, libusb1UsbEndpointConstructor,
-                    usbInterface, endpoint_descriptor->bDescriptorType, usbEndpointDescriptor);
+                    usbInterface, usbEndpointDescriptor);
 
                 (*env)->SetObjectArrayElement(env, endpoints, k, usbEndpoint);
                 if((*env)->ExceptionCheck(env)) {
@@ -297,7 +297,7 @@ JNIEXPORT jobject JNICALL Java_javalibusb1_libusb1_create
     if((libusb1UsbEndpointClass = findAndReferenceClass(env, "javalibusb1/impl/Libusb1UsbEndpoint")) == NULL) {
         return NULL;
     }
-    if((libusb1UsbEndpointConstructor = (*env)->GetMethodID(env, libusb1UsbEndpointClass, "<init>", "(Ljavalibusb1/impl/Libusb1UsbInterface;BLjavax/usb/UsbEndpointDescriptor;)V")) == NULL) {
+    if((libusb1UsbEndpointConstructor = (*env)->GetMethodID(env, libusb1UsbEndpointClass, "<init>", "(Ljavalibusb1/impl/Libusb1UsbInterface;Ljavax/usb/UsbEndpointDescriptor;)V")) == NULL) {
         return NULL;
     }
 

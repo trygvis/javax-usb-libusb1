@@ -1,20 +1,16 @@
 package javalibusb1.impl;
 
-import javax.usb.UsbEndpoint;
-import javax.usb.UsbEndpointDescriptor;
-import javax.usb.UsbInterface;
-import javax.usb.UsbPipe;
+import javax.usb.*;
 
 import static javax.usb.UsbConst.ENDPOINT_DIRECTION_MASK;
+import static javax.usb.UsbConst.ENDPOINT_TYPE_MASK;
 
 public class Libusb1UsbEndpoint implements UsbEndpoint {
     public final Libusb1UsbInterface usbInterface;
-    public final byte type;
     public final UsbEndpointDescriptor descriptor;
 
-    public Libusb1UsbEndpoint(Libusb1UsbInterface usbInterface, byte type, UsbEndpointDescriptor descriptor) {
+    public Libusb1UsbEndpoint(Libusb1UsbInterface usbInterface, UsbEndpointDescriptor descriptor) {
         this.usbInterface = usbInterface;
-        this.type = type;
         this.descriptor = descriptor;
     }
 
@@ -27,7 +23,7 @@ public class Libusb1UsbEndpoint implements UsbEndpoint {
     }
 
     public byte getType() {
-        return type;
+        return (byte) (descriptor.bmAttributes() & ENDPOINT_TYPE_MASK);
     }
 
     public UsbEndpointDescriptor getUsbEndpointDescriptor() {
