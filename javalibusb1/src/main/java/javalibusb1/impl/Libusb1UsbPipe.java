@@ -1,13 +1,11 @@
 package javalibusb1.impl;
 
-import javax.usb.UsbControlIrp;
-import javax.usb.UsbEndpoint;
-import javax.usb.UsbIrp;
-import javax.usb.UsbPipe;
-import javax.usb.event.UsbPipeListener;
-import javax.usb.util.DefaultUsbControlIrp;
-import javax.usb.util.DefaultUsbIrp;
-import java.util.List;
+import static javax.usb.UsbConst.*;
+
+import javax.usb.*;
+import javax.usb.event.*;
+import javax.usb.util.*;
+import java.util.*;
 
 public class Libusb1UsbPipe implements UsbPipe {
 
@@ -59,14 +57,25 @@ public class Libusb1UsbPipe implements UsbPipe {
     }
 
     public boolean isActive() {
-        throw new RuntimeException("Not implemented");
+        return endpoint.getUsbInterface().isActive() && endpoint.getUsbInterface().getUsbConfiguration().isActive();
     }
 
     public boolean isOpen() {
         return open;
     }
 
-    public void open() {
+    public void open() throws UsbException {
+        if (!isActive()) {
+            throw new UsbNotActiveException();
+        }
+
+        if (!endpoint.getUsbInterface().isClaimed()) {
+            throw new UsbNotClaimedException();
+        }
+
+        if (open) {
+            throw new UsbException("Already open");
+        }
         open = true;
     }
 
@@ -74,19 +83,19 @@ public class Libusb1UsbPipe implements UsbPipe {
         throw new RuntimeException("Not implemented");
     }
 
-    public int syncSubmit(byte[] data) {
+    public int syncSubmit(byte[] data) throws UsbException, UsbNotActiveException, UsbNotOpenException, java.lang.IllegalArgumentException {
         UsbIrp irp = new DefaultUsbIrp();
         irp.setData(data);
         return internalSyncSubmit(irp);
     }
 
-    public void syncSubmit(List<UsbIrp> list) {
+    public void syncSubmit(List<UsbIrp> list) throws UsbException, UsbNotActiveException, UsbNotOpenException, java.lang.IllegalArgumentException {
         for (UsbIrp usbIrp : list) {
             syncSubmit(usbIrp);
         }
     }
 
-    public void syncSubmit(UsbIrp irp) {
+    public void syncSubmit(UsbIrp irp) throws UsbException, UsbNotActiveException, UsbNotOpenException, java.lang.IllegalArgumentException {
         internalSyncSubmit(irp);
     }
 
@@ -94,19 +103,67 @@ public class Libusb1UsbPipe implements UsbPipe {
     //
     // -----------------------------------------------------------------------
 
-    private int internalSyncSubmit(UsbIrp irp) {
-        if(irp.getData() == null) {
+    private int internalSyncSubmit(UsbIrp irp) throws UsbException {
+        // 0 means infinite, not sure if that's what a user really want. I think there is an implicit 5 second
+        // default where - trygve
+        int timeout = 0;
+
+        checkIrp(irp);
+
+        if(irp instanceof UsbControlIrp) {
+            UsbControlIrp controlIrp = (UsbControlIrp) irp;
+            return nativeSyncSubmitControl(endpoint.usbInterface.libusb_handle,
+                controlIrp.bmRequestType(), controlIrp.bRequest(), controlIrp.wValue(), controlIrp.wIndex(), timeout);
+        }
+        return nativeSyncSubmit();
+    }
+
+    private void checkIrp(UsbIrp irp) {
+        if (irp == null) {
+            throw new IllegalArgumentException("irp");
+        }
+
+        if (irp instanceof UsbControlIrp) {
+            if (endpoint.getType() != ENDPOINT_TYPE_CONTROL) {
+                throw new IllegalArgumentException("This is not a control endpoint.");
+            }
+        }
+
+        if (!isOpen()) {
+            throw new UsbNotOpenException();
+        }
+
+        if (!isActive()) {
+            throw new UsbNotActiveException();
+        }
+
+        if (irp.getData() == null) {
             throw new IllegalArgumentException("data == null");
         }
 
-        if(irp.getUsbException() != null) {
+        if (irp.getUsbException() != null) {
             throw new IllegalArgumentException("usbException is not null");
         }
 
-        if(irp.isComplete()) {
+        if (irp.isComplete()) {
             throw new IllegalArgumentException("complete == true");
         }
-
-        throw new RuntimeException("Not implemented");
     }
+
+    // -----------------------------------------------------------------------
+    // Native
+    // -----------------------------------------------------------------------
+
+    native
+    private int nativeSyncSubmit()
+        throws UsbException;
+
+    native
+    private int nativeSyncSubmitControl(int handle,
+                                        byte bmRequestType,
+                                        byte bRequest,
+                                        short wValue,
+                                        short wIndex,
+                                        long timeout)
+        throws UsbException;
 }

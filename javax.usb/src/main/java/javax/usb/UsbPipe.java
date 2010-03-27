@@ -3,6 +3,7 @@ package javax.usb;
 import javax.usb.event.UsbPipeListener;
 import java.util.List;
 
+@SuppressWarnings({"DuplicateThrows"})
 public interface UsbPipe {
     void abortAllSubmissions();
 
@@ -26,13 +27,13 @@ public interface UsbPipe {
 
     boolean isOpen();
 
-    void open();
+    void open() throws UsbException, UsbNotActiveException, UsbNotClaimedException, UsbDisconnectedException;
 
     void removeUsbPipeListener(UsbPipeListener listener);
 
-    int syncSubmit(byte[] data);
+    int syncSubmit(byte[] data) throws UsbException, UsbNotActiveException, UsbNotOpenException, java.lang.IllegalArgumentException;
 
-    void syncSubmit(List<UsbIrp> list);
+    void syncSubmit(List<UsbIrp> list) throws UsbException, UsbNotActiveException, UsbNotOpenException, java.lang.IllegalArgumentException;
 
-    void syncSubmit(UsbIrp irp);
+    void syncSubmit(UsbIrp irp) throws UsbException, UsbNotActiveException, UsbNotOpenException, java.lang.IllegalArgumentException;
 }

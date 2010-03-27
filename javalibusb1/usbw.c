@@ -162,3 +162,17 @@ int usbw_get_string_descriptor_ascii(struct libusb_device_handle *handle, uint8_
     usbw_printf("RET: err=%d\n", err);
     return err;
 }
+
+/*************************************************************************
+ * Synchronous device I/O
+ */
+
+int usbw_control_transfer(struct libusb_device_handle *handle, uint8_t bmRequestType, uint8_t bRequest, uint16_t wValue, uint16_t wIndex, unsigned char *data, uint16_t wLength, unsigned int timeout) {
+    usbw_printf("PRE: libusb_control_transfer(%p, %u, %u, %u, %u, %p, %u)\n", handle, bmRequestType, bRequest, wValue, wIndex, data, wLength, timeout);
+    int err = libusb_control_transfer(handle, bmRequestType, bRequest, wValue, wIndex, data, wLength, timeout);
+    usbw_printf("RET: err=%d\n", err);
+    return err;
+}
+
+int usbw_bulk_transfer(struct libusb_device_handle *handle, unsigned char endpoint, unsigned char *data, int length, int *transferred, unsigned int timeout);
+int usbw_interrupt_transfer(struct libusb_device_handle *handle, unsigned char endpoint, unsigned char *data, int length, int *transferred, unsigned int timeout);

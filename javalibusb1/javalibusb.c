@@ -671,3 +671,27 @@ JNIEXPORT void JNICALL Java_javalibusb1_impl_Libusb1UsbInterface_nativeRelease
 {
     usbw_close((struct libusb_device_handle*)handle);
 }
+
+/*****************************************************************************
+ * javalibusb1_impl_Libusb1UsbPipe
+ *****************************************************************************/
+
+/*
+JNIEXPORT jint JNICALL Java_javalibusb1_impl_Libusb1UsbPipe_nativeSyncSubmit
+  (JNIEnv *env, jobject obj)
+{
+}
+*/
+
+JNIEXPORT jint JNICALL Java_javalibusb1_impl_Libusb1UsbPipe_nativeSyncSubmitControl
+  (JNIEnv *env, jobject obj, jint handle, jbyte bmRequestType, jbyte bRequest, jshort wValue, jshort wIndex, jlong timeout)
+{
+    int err;
+
+    if((err = usbw_control_transfer((struct libusb_device_handle*)handle, bmRequestType, bRequest, wValue, wIndex, NULL, 0, timeout)) < 0) {
+        throwPlatformExceptionMsgCode(env, "libusb_control_transfer()", err);
+        return 0;
+    }
+
+    return err;
+}

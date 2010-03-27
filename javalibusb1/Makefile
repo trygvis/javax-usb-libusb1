@@ -6,33 +6,35 @@ sinclude Makefile.$(shell uname -s)
 JDK_HOME ?= $(JAVA_HOME)
 CC      ?= gcc
 CCFLAGS += -I$(JDK_HOME)/include
+CCFLAGS += -Wall
 CCFLAGS += -Werror
+
+all: libjavalibusb1.$(SHREXT)
 
 libjavalibusb1.$(SHREXT): javalibusb.lo usbw.lo
 	$(LIBTOOL) --mode=link --tag=CC cc -module -shared -shrext .$(SHREXT) -o libjavalibusb1.la $^ $(LDFLAGS) -rpath /usr/lib
-#	$(CC) -o $@ -shared -Wl,-soname,$@ $(CCFLAGS) -lusb $<
 
 javalibusb.lo: javalibusb.c
-	$(LIBTOOL) --mode=compile --tag=CC cc -Wall -g -c -shared -o $@ $< $(CCFLAGS)
+	$(LIBTOOL) --mode=compile --tag=CC cc $(CCFLAGS) -g -c -shared -o $@ $<
 
 usbw.lo: usbw.c
-	$(LIBTOOL) --mode=compile --tag=CC cc -Wall -g -c -shared -o $@ $< $(CCFLAGS)
+	$(LIBTOOL) --mode=compile --tag=CC cc $(CCFLAGS) -g -c -shared -o $@ $<
 
-javalibusb.c: javalibusb1_libusb1.h javalibusb1_impl_Libusb1UsbDevice.h javalibusb1_impl_Libusb1UsbInterface.h
+javalibusb.c: javalibusb1_libusb1.h javalibusb1_impl_Libusb1UsbDevice.h javalibusb1_impl_Libusb1UsbInterface.h javalibusb1_impl_Libusb1UsbPipe.h
 
 target/classes/javalibusb1/libusb1.class: src/main/java/javalibusb1/libusb1.java
 	mkdir -p target/classes target/test-classes
 	$(JDK_HOME)/bin/javac -classpath $(CLASSPATH) -d target/classes $(shell find src/main/java -name *.java)
 	$(JDK_HOME)/bin/javac -classpath $(CLASSPATH) -d target/test-classes $(shell find src/test/java -name *.java)
 
+%.h:
+	rm $@
+	$(JDK_HOME)/bin/javah -classpath $(CLASSPATH) -jni $(shell echo $< | sed "s,target.classes.\(.*\).class$$,\1," | tr "/" ".")
+
 javalibusb1_libusb1.h: target/classes/javalibusb1/libusb1.class
-	$(JDK_HOME)/bin/javah -classpath $(CLASSPATH) -jni javalibusb1.libusb1
-
 javalibusb1_impl_Libusb1UsbDevice.h: target/classes/javalibusb1/impl/Libusb1UsbDevice.class
-	$(JDK_HOME)/bin/javah -classpath $(CLASSPATH) -jni javalibusb1.impl.Libusb1UsbDevice
-
 javalibusb1_impl_Libusb1UsbInterface.h: target/classes/javalibusb1/impl/Libusb1UsbInterface.class
-	$(JDK_HOME)/bin/javah -classpath $(CLASSPATH) -jni javalibusb1.impl.Libusb1UsbInterface
+javalibusb1_impl_Libusb1UsbPipe.h: target/classes/javalibusb1/impl/Libusb1UsbPipe.class
 
 clean: clean-java clean-native
 

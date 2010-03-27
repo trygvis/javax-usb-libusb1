@@ -1,6 +1,7 @@
 package javalibusb1.impl;
 
 import javax.usb.*;
+import javax.usb.impl.*;
 import java.util.Arrays;
 import java.util.List;
 
@@ -8,12 +9,15 @@ public class Libusb1UsbInterface implements UsbInterface {
 
     public final Libusb1UsbConfiguration configuration;
     public final UsbInterfaceDescriptor descriptor;
+    public final UsbEndpoint endpointZero;
     public final UsbEndpoint[] endpoints;
     private boolean active;
     @SuppressWarnings({"FieldCanBeLocal", "UnusedDeclaration"})
     private final int libusb_device;
-    @SuppressWarnings({"UnusedDeclaration"})
-    private int libusb_handle;
+
+    // Hey you, don't touch me!
+    int libusb_handle;
+    private static final UsbEndpointDescriptor ENDPOINT_ZERO_DESCRIPTOR = new DefaultUsbEndpointDescriptor((byte)0, (byte)0, (byte)0, (byte)0);
 
     public Libusb1UsbInterface(Libusb1UsbConfiguration configuration, UsbInterfaceDescriptor descriptor, UsbEndpoint[] endpoints, boolean active) {
         this.configuration = configuration;
@@ -22,6 +26,7 @@ public class Libusb1UsbInterface implements UsbInterface {
         this.active = active;
 
         this.libusb_device = configuration.device.libusb_device;
+        endpointZero = new Libusb1UsbEndpoint(this, ENDPOINT_ZERO_DESCRIPTOR);
     }
 
     // -----------------------------------------------------------------------
@@ -79,10 +84,16 @@ public class Libusb1UsbInterface implements UsbInterface {
     }
 
     public UsbConfiguration getUsbConfiguration() {
-        throw new RuntimeException("Not implemented");
+        return configuration;
     }
 
     public UsbEndpoint getUsbEndpoint(byte address) {
+        // I'm not sure if one should check the endpoints list for endpoint 0x00, but I've
+        // never seen it in the array so I assume not - trygve
+        if (address == 0x00) {
+            return endpointZero;
+        }
+
         for (UsbEndpoint endpoint : endpoints) {
             if (endpoint.getUsbEndpointDescriptor().bEndpointAddress() == address) {
                 return endpoint;

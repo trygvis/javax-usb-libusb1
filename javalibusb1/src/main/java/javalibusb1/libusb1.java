@@ -6,6 +6,8 @@ import java.io.Closeable;
 
 class libusb1 implements Closeable {
 
+    // This field is used from the native code.
+    @SuppressWarnings({"FieldCanBeLocal", "UnusedDeclaration"})
     private final int usb_services_context;
 
     libusb1(int usb_services_context) {
