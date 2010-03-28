@@ -84,6 +84,7 @@ public class Libusb1UsbPipe implements UsbPipe {
     }
 
     public int syncSubmit(byte[] data) throws UsbException, UsbNotActiveException, UsbNotOpenException, java.lang.IllegalArgumentException {
+        // This is not correct after what I understand from the reference implementation
         UsbIrp irp = new DefaultUsbIrp();
         irp.setData(data);
         return internalSyncSubmit(irp);
@@ -116,7 +117,16 @@ public class Libusb1UsbPipe implements UsbPipe {
                 controlIrp.bmRequestType(), controlIrp.bRequest(), controlIrp.wValue(), controlIrp.wIndex(), timeout);
         }
 
-        throw new RuntimeException("Not implemented");
+        if(getUsbEndpoint().getType() == ENDPOINT_TYPE_BULK) {
+            int transferred = libusb1.bulk_transfer(endpoint.usbInterface.libusb_handle,
+                getUsbEndpoint().getUsbEndpointDescriptor().bEndpointAddress(),
+                irp.getData(), irp.getOffset(), irp.getLength());
+
+            irp.setActualLength(transferred);
+            irp.complete();
+            return transferred;
+        }
+        throw new RuntimeException("Transfer type not implemented");
     }
 
     private void checkIrp(UsbIrp irp) {

@@ -174,5 +174,11 @@ int usbw_control_transfer(struct libusb_device_handle *handle, uint8_t bmRequest
     return err;
 }
 
-int usbw_bulk_transfer(struct libusb_device_handle *handle, unsigned char endpoint, unsigned char *data, int length, int *transferred, unsigned int timeout);
+int usbw_bulk_transfer(struct libusb_device_handle *handle, unsigned char endpoint, unsigned char *data, int length, int *transferred, unsigned int timeout) {
+    usbw_printf("PRE: libusb_bulk_transfer(%p, %u, %p, %d, %p, %u)\n", handle, endpoint, data, length, transferred, timeout);
+    int err = libusb_bulk_transfer(handle, endpoint, data, length, transferred, timeout);
+    usbw_printf("RET: err=%d\n", err);
+    return err;
+}
+
 int usbw_interrupt_transfer(struct libusb_device_handle *handle, unsigned char endpoint, unsigned char *data, int length, int *transferred, unsigned int timeout);

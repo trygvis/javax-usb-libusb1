@@ -201,10 +201,12 @@ int main() {
 
     assert_libusb(libusb_claim_interface(handle, interface_no));
 
-    libusb_release_interface(handle, interface_no);
-
-    fprintf(stderr, "Resetting device\n");
-    assert_libusb(libusb_reset_device(handle));
+    // This make something funny happen to the device so that it doesn't
+    // respond properly. Have to dig into more source code to figure that out
+    // - trygve
+    //
+    //fprintf(stderr, "Resetting device\n");
+    //assert_libusb(libusb_reset_device(handle));
 
     unsigned short value, index;
     int actual_baudrate;
@@ -230,10 +232,19 @@ int main() {
     value = SIO_SET_DTR_HIGH;
     assert_libusb(libusb_control_transfer(handle, outRequestType, SIO_SET_MODEM_CONTROL_REQUEST, value, index, NULL, 0, usbTimeout));
 
-    sleep(1);
+    i = 0;
+    unsigned char buffer[30];
+    int transferred;
+    int timeout = 0;
+    while(i < 100) {
+        assert_libusb(libusb_bulk_transfer(handle, 0x81, buffer, sizeof(buffer), &transferred, timeout));
+        fprintf(stderr, "transferred %d bytes\n", transferred);
+    }
 
     value = SIO_SET_DTR_LOW;
     assert_libusb(libusb_control_transfer(handle, outRequestType, SIO_SET_MODEM_CONTROL_REQUEST, value, index, NULL, 0, usbTimeout));
+
+    libusb_release_interface(handle, interface_no);
 
     libusb_close(handle);
 

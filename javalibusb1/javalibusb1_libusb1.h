@@ -55,6 +55,14 @@ JNIEXPORT jobjectArray JNICALL Java_javalibusb1_libusb1_get_1devices
 JNIEXPORT jint JNICALL Java_javalibusb1_libusb1_control_1transfer
   (JNIEnv *, jclass, jint, jbyte, jbyte, jshort, jshort, jlong);
 
+/*
+ * Class:     javalibusb1_libusb1
+ * Method:    bulk_transfer
+ * Signature: (IB[BII)I
+ */
+JNIEXPORT jint JNICALL Java_javalibusb1_libusb1_bulk_1transfer
+  (JNIEnv *, jclass, jint, jbyte, jbyteArray, jint, jint);
+
 #ifdef __cplusplus
 }
 #endif

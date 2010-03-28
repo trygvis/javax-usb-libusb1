@@ -486,7 +486,7 @@ fail:
 }
 
 JNIEXPORT jint JNICALL Java_javalibusb1_libusb1_control_1transfer
-  (JNIEnv *env, jobject obj, jint java_device, jbyte bmRequestType, jbyte bRequest, jshort wValue, jshort wIndex, jlong timeout)
+  (JNIEnv *env, jclass klass, jint java_device, jbyte bmRequestType, jbyte bRequest, jshort wValue, jshort wIndex, jlong timeout)
 {
     int err;
     struct libusb_device* device;
@@ -506,6 +506,26 @@ JNIEXPORT jint JNICALL Java_javalibusb1_libusb1_control_1transfer
     usbw_close(handle);
 
     return err;
+}
+
+JNIEXPORT jint JNICALL Java_javalibusb1_libusb1_bulk_1transfer
+  (JNIEnv *env, jclass klass, jint handle, jbyte bEndpointAddress, jbyteArray java_buffer, jint offset, jint length)
+{
+    jbyte* buffer;
+    int transferred;
+    int err;
+
+    const int timeout = 0;
+
+    buffer = (*env)->GetByteArrayElements(env, java_buffer, NULL);
+
+    if((err = usbw_bulk_transfer((struct libusb_device_handle*)handle, bEndpointAddress, (unsigned char *)buffer + offset, length, &transferred, timeout))) {
+        throwPlatformExceptionMsgCode(env, "libusb_bulk_transfer()", err);
+    }
+
+    (*env)->ReleaseByteArrayElements(env, java_buffer, buffer, JNI_COMMIT);
+
+    return transferred;
 }
 
 /*****************************************************************************

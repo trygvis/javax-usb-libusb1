@@ -94,7 +94,7 @@ public class lsusb {
                     System.out.println("   Endpoint #" + k);
                     System.out.println(String.format("    %-15s %10s", "Direction", endpoint.getDirection() == UsbConst.ENDPOINT_DIRECTION_IN ? "in" : "out"));
                     System.out.println(String.format("    %-15s %10s", "Type", endpoint.getType()));
-                    System.out.println(String.format("    %-15s %9s", "bEndpointAddress", "0x" + toHexString(((byte) endpointDescriptor.bEndpointAddress() & ~UsbConst.ENDPOINT_DIRECTION_MASK))));
+                    System.out.println(String.format("    %-15s %9s", "bEndpointAddress", "0x" + toHexString(((byte) endpointDescriptor.bEndpointAddress()))));
                     System.out.println(String.format("    %-15s %10s", "bInterval", unsignedInt(endpointDescriptor.bInterval())));
                     System.out.println(String.format("    %-15s %10s", "bmAttributes", endpointDescriptor.bmAttributes()));
                     System.out.println(String.format("    %-15s %10s", "wMaxPacketSize", endpointDescriptor.wMaxPacketSize()));

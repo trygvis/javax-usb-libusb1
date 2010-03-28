@@ -34,6 +34,9 @@ class libusb1 implements Closeable {
     native
     public static int control_transfer(int device, byte bmRequestType, byte bRequest, short wValue, short wIndex, long timeout) throws UsbException;
 
+    native
+    public static int bulk_transfer(int handle, byte bEndpointAddress, byte[] buffer, int offest, int length);
+
     static {
         System.loadLibrary("javalibusb1");
     }
