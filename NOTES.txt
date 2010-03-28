@@ -1,4 +1,17 @@
-TCK Notes
+= Implementation Notes =
+
+Right now there's a whole lot of libusb_open() and libusb_close() going on. I
+wonder if that has a big impact on anything. If it has I have to find a way to
+associate a handle with a device or something. However, as there are no
+close() operations on a device it's kinda hard to know when to release the
+handle.
+
+= TCK Notes =
 
  * The TCK should not assert if a method is synchronized or not.
  * The TCK should not assert private methods. They are PRIVATE.
+
+Stuff I know I don't do properly that the TCK should catch:
+
+ * When closing a parent object (like a UsbDevice) it should implicitly close
+   all child objects (like any UsbPipes that are open).

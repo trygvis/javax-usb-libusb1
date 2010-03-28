@@ -1,4 +1,4 @@
-package javalibusb1.impl;
+package javalibusb1;
 
 import javax.usb.*;
 import javax.usb.impl.*;

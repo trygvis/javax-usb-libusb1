@@ -39,6 +39,8 @@ public class DefaultUsbIrp implements UsbIrp {
     }
 
     public void setActualLength(int actualLength) throws IllegalArgumentException{
+        // TODO: shouldn't this check to see if the length is bigger than 2^16-1?
+        // There's not mention of the requirement in the docs - trygve
         if (length < 0) {
             throw new IllegalArgumentException("length < 0");
         }
@@ -73,6 +75,8 @@ public class DefaultUsbIrp implements UsbIrp {
     }
 
     public void setLength(int length) throws IllegalArgumentException {
+        // TODO: shouldn't this check to see if the length is bigger than 2^16-1?
+        // There's not mention of the requirement in the docs - trygve
         if (length < 0) {
             throw new IllegalArgumentException("length < 0");
         }

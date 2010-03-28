@@ -1,10 +1,10 @@
 package no.hackaton.ftdi;
 
-import static java.lang.Thread.sleep;
+import static java.lang.Thread.*;
 
 import javax.usb.*;
 
-public class ToggleDtr {
+public class ReadSerial {
     public static void main(String[] args) throws Exception {
         UsbServices usbServices = UsbHostManager.getUsbServices();
 
@@ -17,12 +17,9 @@ public class ToggleDtr {
 
         Ftdi232 ftdi232 = new Ftdi232(device);
 
-        System.out.println("Setting DRT");
-        System.out.flush();
+        ftdi232.setBaudRate(2400);
         ftdi232.setDtr(true);
         sleep(1000);
-        System.out.println("Clearing DRT");
-        System.out.flush();
         ftdi232.setDtr(false);
     }
 }

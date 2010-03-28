@@ -35,10 +35,13 @@ public class Ftdi232 implements Closeable {
         UsbUtil.close(device);
     }
 
-    public void setBaudRate(int requestedBaudRate) {
-        int value = calculateBaudRate(requestedBaudRate);
+    public void setBaudRate(int requestedBaudRate) throws UsbException {
+        short value = (short) (calculateBaudRate(requestedBaudRate) >> 16);
+        short index = 0;
 
-        throw new RuntimeException("Not implemented");
+        byte outRequestType = ENDPOINT_DIRECTION_OUT | REQUESTTYPE_TYPE_VENDOR | REQUESTTYPE_RECIPIENT_DEVICE;
+
+        device.syncSubmit(device.createUsbControlIrp(outRequestType, SET_BAUDRATE_REQUEST, value, index));
     }
 
     public void setDtr(boolean b) throws UsbException {
@@ -47,14 +50,16 @@ public class Ftdi232 implements Closeable {
 
         byte outRequestType = ENDPOINT_DIRECTION_OUT | REQUESTTYPE_TYPE_VENDOR | REQUESTTYPE_RECIPIENT_DEVICE;
 
-        UsbPipe pipe = controlEndpoint.getUsbPipe();
-        try {
-            pipe.open();
-            UsbControlIrp irp = pipe.createUsbControlIrp(outRequestType, SET_MODEM_CONTROL_REQUEST, value, index);
-            irp.setData(new byte[0], 0, 0);
-            pipe.syncSubmit(irp);
-        } finally {
-            UsbUtil.close(pipe);
-        }
+        device.syncSubmit(device.createUsbControlIrp(outRequestType, SET_MODEM_CONTROL_REQUEST, value, index));
+
+//        UsbPipe pipe = controlEndpoint.getUsbPipe();
+//        try {
+//            pipe.open();
+//            UsbControlIrp irp = pipe.createUsbControlIrp(outRequestType, SET_MODEM_CONTROL_REQUEST, value, index);
+//            irp.setData(new byte[0], 0, 0);
+//            pipe.syncSubmit(irp);
+//        } finally {
+//            UsbUtil.close(pipe);
+//        }
     }
 }

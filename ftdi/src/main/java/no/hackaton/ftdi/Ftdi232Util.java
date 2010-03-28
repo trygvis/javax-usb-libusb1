@@ -6,7 +6,7 @@ public class Ftdi232Util {
     public static int calculateBaudRate(int requestedBaudRate) {
         int base = 3000000 / requestedBaudRate;
 
-        return base;
+        return base << 16;
     }
 
     public static UsbDevice findDevice(UsbHub usbHub) {

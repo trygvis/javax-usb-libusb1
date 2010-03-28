@@ -1,4 +1,4 @@
-package javalibusb1.impl;
+package javalibusb1;
 
 import static javax.usb.UsbConst.*;
 
@@ -112,10 +112,11 @@ public class Libusb1UsbPipe implements UsbPipe {
 
         if(irp instanceof UsbControlIrp) {
             UsbControlIrp controlIrp = (UsbControlIrp) irp;
-            return nativeSyncSubmitControl(endpoint.usbInterface.libusb_handle,
+            return libusb1.control_transfer(endpoint.usbInterface.libusb_handle,
                 controlIrp.bmRequestType(), controlIrp.bRequest(), controlIrp.wValue(), controlIrp.wIndex(), timeout);
         }
-        return nativeSyncSubmit();
+
+        throw new RuntimeException("Not implemented");
     }
 
     private void checkIrp(UsbIrp irp) {
@@ -149,21 +150,4 @@ public class Libusb1UsbPipe implements UsbPipe {
             throw new IllegalArgumentException("complete == true");
         }
     }
-
-    // -----------------------------------------------------------------------
-    // Native
-    // -----------------------------------------------------------------------
-
-    native
-    private int nativeSyncSubmit()
-        throws UsbException;
-
-    native
-    private int nativeSyncSubmitControl(int handle,
-                                        byte bmRequestType,
-                                        byte bRequest,
-                                        short wValue,
-                                        short wIndex,
-                                        long timeout)
-        throws UsbException;
 }

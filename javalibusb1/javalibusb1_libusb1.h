@@ -42,10 +42,18 @@ JNIEXPORT void JNICALL Java_javalibusb1_libusb1_set_1debug
 /*
  * Class:     javalibusb1_libusb1
  * Method:    get_devices
- * Signature: ()[Ljavalibusb1/impl/Libusb1UsbDevice;
+ * Signature: ()[Ljavalibusb1/Libusb1UsbDevice;
  */
 JNIEXPORT jobjectArray JNICALL Java_javalibusb1_libusb1_get_1devices
   (JNIEnv *, jobject);
+
+/*
+ * Class:     javalibusb1_libusb1
+ * Method:    control_transfer
+ * Signature: (IBBSSJ)I
+ */
+JNIEXPORT jint JNICALL Java_javalibusb1_libusb1_control_1transfer
+  (JNIEnv *, jclass, jint, jbyte, jbyte, jshort, jshort, jlong);
 
 #ifdef __cplusplus
 }

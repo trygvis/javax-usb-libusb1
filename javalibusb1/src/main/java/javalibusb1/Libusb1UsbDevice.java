@@ -1,7 +1,8 @@
-package javalibusb1.impl;
+package javalibusb1;
 
 import javax.usb.*;
 import javax.usb.event.*;
+import javax.usb.util.*;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -75,7 +76,7 @@ public class Libusb1UsbDevice implements UsbDevice, Closeable {
     }
 
     public UsbControlIrp createUsbControlIrp(byte bmRequestType, byte bRequest, short wValue, short wIndex) {
-        throw new RuntimeException("Not implemented");
+        return new DefaultUsbControlIrp(bmRequestType, bRequest, wValue, wIndex);
     }
 
     public void asyncSubmit(List<UsbControlIrp> list) {
@@ -90,8 +91,8 @@ public class Libusb1UsbDevice implements UsbDevice, Closeable {
         throw new RuntimeException("Not implemented");
     }
 
-    public void syncSubmit(UsbControlIrp irp) {
-        throw new RuntimeException("Not implemented");
+    public void syncSubmit(UsbControlIrp irp) throws UsbException {
+        internalSyncSubmit(irp);
     }
 
     public UsbPort getParentUsbPort() throws UsbDisconnectedException {
@@ -130,6 +131,24 @@ public class Libusb1UsbDevice implements UsbDevice, Closeable {
     @Override
     protected void finalize() throws Throwable {
         close();
+    }
+
+    private void internalSyncSubmit(UsbControlIrp irp) throws UsbException {
+        if (irp == null) {
+            throw new IllegalArgumentException("irp");
+        }
+
+        // TODO: check if this is active
+
+        if (irp.getUsbException() != null) {
+            throw new IllegalArgumentException("usbException is not null");
+        }
+
+        if (irp.isComplete()) {
+            throw new IllegalArgumentException("complete == true");
+        }
+
+        libusb1.control_transfer(libusb_device, irp.bmRequestType(), irp.bRequest(), irp.wValue(), irp.wIndex(), 0);
     }
 
     // -----------------------------------------------------------------------

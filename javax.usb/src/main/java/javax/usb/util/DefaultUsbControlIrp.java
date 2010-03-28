@@ -44,7 +44,6 @@ public class DefaultUsbControlIrp extends DefaultUsbIrp implements UsbControlIrp
     }
 
     public short wLength() {
-        return 0; // TODO: This is not right.
-        // Probably have to find the constant given the request type + data length
+        return (short)length;
     }
 }

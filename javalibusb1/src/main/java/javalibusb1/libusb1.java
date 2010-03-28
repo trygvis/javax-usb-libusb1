@@ -1,8 +1,7 @@
 package javalibusb1;
 
-import javalibusb1.impl.Libusb1UsbDevice;
-
-import java.io.Closeable;
+import javax.usb.*;
+import java.io.*;
 
 class libusb1 implements Closeable {
 
@@ -31,6 +30,9 @@ class libusb1 implements Closeable {
 
     native
     public Libusb1UsbDevice[] get_devices();
+
+    native
+    public static int control_transfer(int device, byte bmRequestType, byte bRequest, short wValue, short wIndex, long timeout) throws UsbException;
 
     static {
         System.loadLibrary("javalibusb1");

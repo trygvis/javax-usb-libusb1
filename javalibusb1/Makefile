@@ -20,7 +20,7 @@ javalibusb.lo: javalibusb.c
 usbw.lo: usbw.c
 	$(LIBTOOL) --mode=compile --tag=CC cc $(CCFLAGS) -g -c -shared -o $@ $<
 
-javalibusb.c: javalibusb1_libusb1.h javalibusb1_impl_Libusb1UsbDevice.h javalibusb1_impl_Libusb1UsbInterface.h javalibusb1_impl_Libusb1UsbPipe.h
+javalibusb.c: javalibusb1_libusb1.h javalibusb1_Libusb1UsbDevice.h javalibusb1_Libusb1UsbInterface.h javalibusb1_Libusb1UsbPipe.h
 
 target/classes/javalibusb1/%.class: src/main/java/javalibusb1/libusb1.java
 	mkdir -p target/classes target/test-classes
@@ -29,13 +29,13 @@ target/classes/javalibusb1/%.class: src/main/java/javalibusb1/libusb1.java
 	rsync -a --progress src/main/resources/ target/classes
 
 %.h:
-	rm $@
+	rm -f $@
 	$(JDK_HOME)/bin/javah -classpath $(CLASSPATH) -jni $(shell echo $< | sed "s,target.classes.\(.*\).class$$,\1," | tr "/" ".")
 
 javalibusb1_libusb1.h: target/classes/javalibusb1/libusb1.class
-javalibusb1_impl_Libusb1UsbDevice.h: target/classes/javalibusb1/impl/Libusb1UsbDevice.class
-javalibusb1_impl_Libusb1UsbInterface.h: target/classes/javalibusb1/impl/Libusb1UsbInterface.class
-javalibusb1_impl_Libusb1UsbPipe.h: target/classes/javalibusb1/impl/Libusb1UsbPipe.class
+javalibusb1_Libusb1UsbDevice.h: target/classes/javalibusb1/Libusb1UsbDevice.class
+javalibusb1_Libusb1UsbInterface.h: target/classes/javalibusb1/Libusb1UsbInterface.class
+javalibusb1_Libusb1UsbPipe.h: target/classes/javalibusb1/Libusb1UsbPipe.class
 
 clean: clean-java clean-native
 
