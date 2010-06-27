@@ -85,6 +85,13 @@ uint8_t usbw_get_device_address(struct libusb_device *device) {
     return address;
 }
 
+enum libusb_speed usbw_get_speed(struct libusb_device *device) {
+    usbw_printf("PRE: libusb_get_speed(%p)\n", device);
+    enum libusb_speed speed = libusb_get_speed(device);
+    usbw_printf("RET: speed=%u\n", speed);
+    return speed;
+}
+
 void usbw_unref_device(libusb_device *device) {
     usbw_printf("PRE: libusb_unref_device(%p)\n", device);
     libusb_unref_device(device);

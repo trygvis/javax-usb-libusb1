@@ -24,6 +24,10 @@ public interface UsbDevice {
 
     UsbDeviceDescriptor getUsbDeviceDescriptor();
 
+    Object getSpeed();
+
+    boolean isConfigured();
+
     boolean isUsbHub();
 
     // -----------------------------------------------------------------------

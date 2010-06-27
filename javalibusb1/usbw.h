@@ -21,6 +21,7 @@ ssize_t usbw_get_device_list(struct libusb_context *context, libusb_device ***li
 void usbw_free_device_list(struct libusb_device **list, int unref_devices);
 uint8_t usbw_get_bus_number(struct libusb_device *device);
 uint8_t usbw_get_device_address(struct libusb_device *device);
+enum libusb_speed usbw_get_speed(struct libusb_device *device);
 void usbw_unref_device(struct libusb_device *device);
 int usbw_open(struct libusb_device *device, struct libusb_device_handle **handle);
 void usbw_close(struct libusb_device_handle *handle);

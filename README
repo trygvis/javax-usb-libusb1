@@ -2,3 +2,21 @@ Technical Implementation Details
 
 The device and handle references are stored internally in the Device and Interface classes
 as integers. These should be byte arrays to be a bit more generic.
+
+To control the debugging level from libusb set the system property
+"javax.usb.libusb.debug" to the desired level:
+
+ -Djavax.usb.libusb.debug=3
+
+See their documentation for the up to date values. Current values:
+
+ Level 0: no messages ever printed by the library (default)
+ Level 1: error messages are printed to stderr
+ Level 2: warning and error messages are printed to stderr
+ Level 3: informational messages are printed to stdout, warning and error
+          messages are printed to stderr
+
+To trace all calls to libusb, truss/strace/kdump style set the system property
+"javax.usb.libusb.trace" to true
+
+ -Djavax.usb.libusb.trace=true

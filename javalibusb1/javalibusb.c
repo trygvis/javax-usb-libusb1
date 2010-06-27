@@ -69,6 +69,13 @@ jmethodID defaultUsbInterfaceDescriptorConstructor = NULL;
 jclass defaultUsbEndpointDescriptorClass = NULL;
 jmethodID defaultUsbEndpointDescriptorConstructor = NULL;
 
+/* javax.usb.UsbConst */
+jclass usbConstClass = NULL;
+jobject DEVICE_SPEED_LOW = NULL;
+jobject DEVICE_SPEED_FULL = NULL;
+jobject DEVICE_SPEED_HIGH = NULL;
+jobject DEVICE_SPEED_UNKNOWN = NULL;
+
 struct usb_services_context {
     struct libusb_context* libusb_context;
 };
@@ -107,6 +114,15 @@ static jclass findAndReferenceClass(JNIEnv *env, const char* name) {
 static void unreferenceClass(JNIEnv *env, jclass* klass) {
     (*env)->DeleteGlobalRef(env, *klass);
     *klass = NULL;
+}
+
+static jobject getStaticObjectField(JNIEnv *env, jclass klass, const char *fieldName) {
+    jfieldID fieldID;
+
+    if((fieldID = (*env)->GetStaticFieldID(env, klass, fieldName, "Ljava/lang/Object;")) == NULL) {
+        return NULL;
+    }
+    return (*env)->GetStaticObjectField(env, klass, fieldID);
 }
 
 static void throwPlatformException(JNIEnv *env, const char *message)
@@ -270,7 +286,7 @@ JNIEXPORT jobject JNICALL Java_javalibusb1_libusb1_create
     if((libusb1UsbDeviceClass = findAndReferenceClass(env, "javalibusb1/Libusb1UsbDevice")) == NULL) {
         return NULL;
     }
-    if((libusb1UsbDeviceConstructor = (*env)->GetMethodID(env, libusb1UsbDeviceClass, "<init>", "(IBBLjavax/usb/UsbDeviceDescriptor;)V")) == NULL) {
+    if((libusb1UsbDeviceConstructor = (*env)->GetMethodID(env, libusb1UsbDeviceClass, "<init>", "(IBBLjava/lang/Object;Ljavax/usb/UsbDeviceDescriptor;)V")) == NULL) {
         return NULL;
     }
     if((device_libusb_device_field = (*env)->GetFieldID(env, libusb1UsbDeviceClass, "libusb_device", "I")) == NULL) {
@@ -367,6 +383,20 @@ JNIEXPORT jobject JNICALL Java_javalibusb1_libusb1_create
         return NULL;
     }
 
+    /* Find constants from UsbConst */
+    if((usbConstClass = findAndReferenceClass(env, "javax/usb/UsbConst")) == NULL) {
+        return NULL;
+    }
+    if((DEVICE_SPEED_LOW = getStaticObjectField(env, usbConstClass, "DEVICE_SPEED_LOW")) == NULL) {
+        return NULL;
+    }
+    if((DEVICE_SPEED_FULL = getStaticObjectField(env, usbConstClass, "DEVICE_SPEED_FULL")) == NULL) {
+        return NULL;
+    }
+    if((DEVICE_SPEED_HIGH = getStaticObjectField(env, usbConstClass, "DEVICE_SPEED_HIGH")) == NULL) {
+        return NULL;
+    }
+
     /* Initialization */
     context = malloc(sizeof(struct usb_services_context));
 
@@ -394,23 +424,25 @@ JNIEXPORT void JNICALL Java_javalibusb1_libusb1_close
 {
     struct usb_services_context *context = (struct usb_services_context*)(*env)->GetIntField(env, obj, usb_services_context_field);
 
-    unreferenceClass(env, &libusb1UsbDeviceClass);
-    unreferenceClass(env, &libusb1UsbConfigurationClass);
-    unreferenceClass(env, &libusb1UsbInterfaceClass);
-    unreferenceClass(env, &libusb1UsbEndpointClass);
-    unreferenceClass(env, &usbDeviceDescriptorClass);
-    unreferenceClass(env, &usbConfigurationClass);
-    unreferenceClass(env, &usbInterfaceClass);
-    unreferenceClass(env, &usbInterfaceArrayClass);
-    unreferenceClass(env, &usbInterfaceDescriptorClass);
-    unreferenceClass(env, &usbEndpointClass);
-    unreferenceClass(env, &usbEndpointDescriptorClass);
-    unreferenceClass(env, &usbPlatformExceptionClass);
-    unreferenceClass(env, &usbDisconnectedExceptionClass);
-    unreferenceClass(env, &defaultUsbDeviceDescriptorClass);
-    unreferenceClass(env, &defaultUsbConfigurationDescriptorClass);
-    unreferenceClass(env, &defaultUsbInterfaceDescriptorClass);
+    // In the oposite order of referencing
+    unreferenceClass(env, &usbConstClass);
     unreferenceClass(env, &defaultUsbEndpointDescriptorClass);
+    unreferenceClass(env, &defaultUsbInterfaceDescriptorClass);
+    unreferenceClass(env, &defaultUsbConfigurationDescriptorClass);
+    unreferenceClass(env, &defaultUsbDeviceDescriptorClass);
+    unreferenceClass(env, &usbDisconnectedExceptionClass);
+    unreferenceClass(env, &usbPlatformExceptionClass);
+    unreferenceClass(env, &usbEndpointDescriptorClass);
+    unreferenceClass(env, &usbEndpointClass);
+    unreferenceClass(env, &usbInterfaceDescriptorClass);
+    unreferenceClass(env, &usbInterfaceArrayClass);
+    unreferenceClass(env, &usbInterfaceClass);
+    unreferenceClass(env, &usbConfigurationClass);
+    unreferenceClass(env, &usbDeviceDescriptorClass);
+    unreferenceClass(env, &libusb1UsbEndpointClass);
+    unreferenceClass(env, &libusb1UsbInterfaceClass);
+    unreferenceClass(env, &libusb1UsbConfigurationClass);
+    unreferenceClass(env, &libusb1UsbDeviceClass);
 
     usbw_exit(context->libusb_context);
     free(context);
@@ -435,9 +467,10 @@ JNIEXPORT jobjectArray JNICALL Java_javalibusb1_libusb1_get_1devices
     struct usb_services_context *context;
     int i;
     ssize_t size;
-    jobject usbDeviceDescriptor;
     jobject usbDevice;
     uint8_t busNumber, deviceAddress;
+    jobject speed;
+    jobject usbDeviceDescriptor;
 
     context = (struct usb_services_context*)(*env)->GetIntField(env, obj, usb_services_context_field);
 
@@ -455,6 +488,21 @@ JNIEXPORT jobjectArray JNICALL Java_javalibusb1_libusb1_get_1devices
             goto fail;
         }
 
+        switch (usbw_get_speed(d)) {
+            case LIBUSB_SPEED_LOW:
+                speed = DEVICE_SPEED_LOW;
+                break;
+            case LIBUSB_SPEED_FULL:
+                speed = DEVICE_SPEED_FULL;
+                break;
+            case LIBUSB_SPEED_HIGH:
+                speed = DEVICE_SPEED_HIGH;
+                break;
+            default:
+                speed = DEVICE_SPEED_UNKNOWN;
+                break;
+        }
+
         usbDeviceDescriptor = (*env)->NewObject(env, defaultUsbDeviceDescriptorClass, defaultUsbDeviceDescriptorConstructor,
             (jshort) descriptor.bcdUSB,
             (jbyte) descriptor.bDeviceClass,
@@ -469,7 +517,13 @@ JNIEXPORT jobjectArray JNICALL Java_javalibusb1_libusb1_get_1devices
             (jbyte) descriptor.iSerialNumber,
             (jbyte) descriptor.bNumConfigurations);
 
-        usbDevice = (*env)->NewObject(env, libusb1UsbDeviceClass, libusb1UsbDeviceConstructor, d, busNumber, deviceAddress, usbDeviceDescriptor);
+        usbDevice = (*env)->NewObject(env, libusb1UsbDeviceClass,
+            libusb1UsbDeviceConstructor,
+            d,
+            busNumber,
+            deviceAddress,
+            speed,
+            usbDeviceDescriptor);
 
         (*env)->SetObjectArrayElement(env, usbDevices, i, usbDevice);
         if((*env)->ExceptionCheck(env)) {

@@ -3,10 +3,8 @@ package javalibusb1;
 import javax.usb.*;
 import javax.usb.event.*;
 import javax.usb.util.*;
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
 /**
  * TODO: Subclass and use a Libusb1UsbHub if this is a hub.
@@ -21,12 +19,16 @@ public class Libusb1UsbDevice implements UsbDevice, Closeable {
     final int libusb_device;
     public final byte busNumber;
     public final byte deviceAddress;
+    public final Object speed;
     private final UsbDeviceDescriptor usbDeviceDescriptor;
 
-    public Libusb1UsbDevice(int libusb_device_, byte busNumber, byte deviceAddress, UsbDeviceDescriptor usbDeviceDescriptor) {
+    private final List<UsbDeviceListener> deviceListeners = new ArrayList<UsbDeviceListener>();
+
+    public Libusb1UsbDevice(int libusb_device_, byte busNumber, byte deviceAddress, Object speed, UsbDeviceDescriptor usbDeviceDescriptor) {
         this.libusb_device = libusb_device_;
         this.busNumber = busNumber;
         this.deviceAddress = deviceAddress;
+        this.speed = speed;
         this.usbDeviceDescriptor = usbDeviceDescriptor;
     }
 
@@ -63,16 +65,27 @@ public class Libusb1UsbDevice implements UsbDevice, Closeable {
         return usbDeviceDescriptor;
     }
 
+    public Object getSpeed() {
+        return speed;
+    }
+
+    public boolean isConfigured() {
+        // TODO: figure out how to determine if the device is configured or not.
+        // From what I can read from the libusb documentation a device always have to have
+        // a configuration set.
+        return true;
+    }
+
     public boolean isUsbHub() {
         return false;
     }
 
     public void addUsbDeviceListener(UsbDeviceListener listener) {
-        throw new RuntimeException("Not implemented");
+        deviceListeners.add(listener);
     }
 
     public void removeUsbDeviceListener(UsbDeviceListener listener) {
-        throw new RuntimeException("Not implemented");
+        deviceListeners.remove(listener);
     }
 
     public UsbControlIrp createUsbControlIrp(byte bmRequestType, byte bRequest, short wValue, short wIndex) {

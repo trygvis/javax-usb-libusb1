@@ -44,6 +44,14 @@ public abstract class AbstractRootUsbHub implements UsbHub {
         return usbDeviceDescriptorInstance;
     }
 
+    public Object getSpeed() {
+        return UsbConst.DEVICE_SPEED_UNKNOWN;
+    }
+
+    public boolean isConfigured() {
+        return true;
+    }
+
     public boolean isUsbHub() {
         return true;
     }

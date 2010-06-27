@@ -2,6 +2,11 @@ package javax.usb;
 
 public interface UsbConst {
 
+    Object DEVICE_SPEED_UNKNOWN = new Object();
+    Object DEVICE_SPEED_LOW     = new Object();
+    Object DEVICE_SPEED_FULL    = new Object();
+    Object DEVICE_SPEED_HIGH    = new Object();
+
     byte ENDPOINT_DIRECTION_IN = (byte) 0x80;
     byte ENDPOINT_DIRECTION_MASK = (byte) 0x80;
     byte ENDPOINT_DIRECTION_OUT = 0;
