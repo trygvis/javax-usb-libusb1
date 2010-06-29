@@ -1,0 +1,1 @@
+CCFLAGS += -L/Users/trygvis/opt/libusb-git/lib -I/Users/trygvis/opt/libusb-git/include/libusb-1.0
