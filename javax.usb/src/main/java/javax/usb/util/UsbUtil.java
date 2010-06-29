@@ -1,5 +1,6 @@
 package javax.usb.util;
 
+import javax.usb.*;
 import java.io.*;
 
 public class UsbUtil {
@@ -72,6 +73,27 @@ public class UsbUtil {
     public static String twoDigitBdc(short bdc) {
         return ((bdc & 0xf000) >> 12) + ((bdc & 0x0f00) >> 8) + "." +
             ((bdc & 0x00f0) >> 4) + (bdc & 0x000f);
+    }
+
+    public static String getSpeedString(Object object)
+    {
+        if(object == null) {
+            return "null";
+        }
+
+        if(object == UsbConst.DEVICE_SPEED_LOW) {
+            return "Low";
+        }
+
+        if(object == UsbConst.DEVICE_SPEED_FULL) {
+            return "Full";
+        }
+
+        if(object == UsbConst.DEVICE_SPEED_HIGH) {
+            return "High";
+        }
+
+        return "Invalid";
     }
 
     // -----------------------------------------------------------------------

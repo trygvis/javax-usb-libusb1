@@ -286,7 +286,7 @@ JNIEXPORT jobject JNICALL Java_javalibusb1_libusb1_create
     if((libusb1UsbDeviceClass = findAndReferenceClass(env, "javalibusb1/Libusb1UsbDevice")) == NULL) {
         return NULL;
     }
-    if((libusb1UsbDeviceConstructor = (*env)->GetMethodID(env, libusb1UsbDeviceClass, "<init>", "(IBBLjava/lang/Object;Ljavax/usb/UsbDeviceDescriptor;)V")) == NULL) {
+    if((libusb1UsbDeviceConstructor = (*env)->GetMethodID(env, libusb1UsbDeviceClass, "<init>", "(IBBILjavax/usb/UsbDeviceDescriptor;)V")) == NULL) {
         return NULL;
     }
     if((device_libusb_device_field = (*env)->GetFieldID(env, libusb1UsbDeviceClass, "libusb_device", "I")) == NULL) {
@@ -396,6 +396,9 @@ JNIEXPORT jobject JNICALL Java_javalibusb1_libusb1_create
     if((DEVICE_SPEED_HIGH = getStaticObjectField(env, usbConstClass, "DEVICE_SPEED_HIGH")) == NULL) {
         return NULL;
     }
+    if((DEVICE_SPEED_UNKNOWN = getStaticObjectField(env, usbConstClass, "DEVICE_SPEED_UNKNOWN")) == NULL) {
+        return NULL;
+    }
 
     /* Initialization */
     context = malloc(sizeof(struct usb_services_context));
@@ -469,7 +472,7 @@ JNIEXPORT jobjectArray JNICALL Java_javalibusb1_libusb1_get_1devices
     ssize_t size;
     jobject usbDevice;
     uint8_t busNumber, deviceAddress;
-    jobject speed;
+    int speed;
     jobject usbDeviceDescriptor;
 
     context = (struct usb_services_context*)(*env)->GetIntField(env, obj, usb_services_context_field);
@@ -490,17 +493,16 @@ JNIEXPORT jobjectArray JNICALL Java_javalibusb1_libusb1_get_1devices
 
         switch (usbw_get_speed(d)) {
             case LIBUSB_SPEED_LOW:
-                speed = DEVICE_SPEED_LOW;
+                speed = 1;
                 break;
             case LIBUSB_SPEED_FULL:
-                speed = DEVICE_SPEED_FULL;
+                speed = 2;
                 break;
             case LIBUSB_SPEED_HIGH:
-                speed = DEVICE_SPEED_HIGH;
+                speed = 3;
                 break;
             default:
-                speed = DEVICE_SPEED_UNKNOWN;
-                break;
+                speed = 4;
         }
 
         usbDeviceDescriptor = (*env)->NewObject(env, defaultUsbDeviceDescriptorClass, defaultUsbDeviceDescriptorConstructor,

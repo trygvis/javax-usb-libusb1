@@ -24,11 +24,23 @@ public class Libusb1UsbDevice implements UsbDevice, Closeable {
 
     private final List<UsbDeviceListener> deviceListeners = new ArrayList<UsbDeviceListener>();
 
-    public Libusb1UsbDevice(int libusb_device_, byte busNumber, byte deviceAddress, Object speed, UsbDeviceDescriptor usbDeviceDescriptor) {
+    public Libusb1UsbDevice(int libusb_device_, byte busNumber, byte deviceAddress, int speed, UsbDeviceDescriptor usbDeviceDescriptor) {
         this.libusb_device = libusb_device_;
         this.busNumber = busNumber;
         this.deviceAddress = deviceAddress;
-        this.speed = speed;
+        switch (speed) {
+            case 1:
+                this.speed = UsbConst.DEVICE_SPEED_LOW;
+                break;
+            case 2:
+                this.speed = UsbConst.DEVICE_SPEED_FULL;
+                break;
+            case 3:
+                this.speed = UsbConst.DEVICE_SPEED_HIGH;
+                break;
+            default:
+                this.speed = UsbConst.DEVICE_SPEED_UNKNOWN;
+        }
         this.usbDeviceDescriptor = usbDeviceDescriptor;
     }
 
