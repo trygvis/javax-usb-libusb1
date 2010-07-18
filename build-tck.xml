@@ -1,0 +1,111 @@
+<project name="javax-usb-libusb1">
+
+  <property file="build.properties"/>
+  <loadproperties srcFile="build-default.properties"/>
+  <property name="maven.repo.local" value="${user.home}/.m2/repository"/>
+
+  <target name="compile" depends="compile-tck,compile-javalibusb1"/>
+
+  <path id="compile">
+    <pathelement location="javax.usb/target/classes"/>
+    <pathelement location="javalibusb1/target/classes"/>
+  </path>
+
+  <path id="test">
+    <pathelement location="javax.usb/target/classes"/>
+    <pathelement location="javax.usb/target/test-classes"/>
+
+    <pathelement location="javalibusb1/target/classes"/>
+    <pathelement location="javalibusb1/target/test-classes"/>
+
+    <pathelement location="${tck.path}/target/classes"/>
+    <pathelement location="${tck.path}/target/test-classes"/>
+
+    <pathelement location="${maven.repo.local}/junit/junit/3.8.1/junit-3.8.1.jar"/>
+  </path>
+
+  <target name="clean">
+    <delete dir="javax.usb/target/classes"/>
+    <delete dir="javalibusb1/target/classes"/>
+    <delete dir="javalibusb1/target/test-classes"/>
+    <exec executable="make">
+      <arg line="-C javalibusb1 clean"/>
+    </exec>
+    <delete dir="${tck.path}/target/classes"/>
+    <delete dir="${tck.path}/target/test-classes"/>
+
+    <delete dir="${javax.usb.path}/target/classes"/>
+    <delete dir="${javax.usb.path}/target/test-classes"/>
+  </target>
+
+  <target name="compile-javax-usb">
+    <mkdir dir="javax.usb/target/classes"/>
+    <javac srcdir="javax.usb/src/main/java" destdir="javax.usb/target/classes"/>
+  </target>
+
+  <target name="compile-javalibusb1" depends="compile-javax-usb">
+    <mkdir dir="javalibusb1/target/classes"/>
+    <javac srcdir="javalibusb1/src/main/java" destdir="javalibusb1/target/classes" classpathref="compile"/>
+    <copy todir="javalibusb1/target/classes">
+      <fileset dir="javalibusb1/src/main/resources"/>
+    </copy>
+    <exec executable="make">
+      <arg line="-C javalibusb1 all"/>
+    </exec>
+
+    <mkdir dir="javalibusb1/target/test-classes"/>
+    <javac srcdir="javalibusb1/src/test/java" destdir="javalibusb1/target/test-classes" classpathref="test"/>
+  </target>
+
+  <target name="compile-tck" depends="compile-javax-usb">
+    <mkdir dir="${tck.path}/target/classes"/>
+    <mkdir dir="${tck.path}/target/test-classes"/>
+
+    <mkdir dir="${javax.usb.path}/target/classes"/>
+    <mkdir dir="${javax.usb.path}/target/test-classes"/>
+    <!--
+    The local javax.usb implementation is not complete enough so
+    compile against the original javax.usb implementation.
+
+    <javac srcdir="${tck.path}/src/javax" destdir="${tck.path}/target/classes" classpathref="test"/>
+    -->
+
+    <javac srcdir="${javax.usb.path}/src" destdir="${javax.usb.path}/target/classes"/>
+
+    <javac srcdir="${tck.path}/src" destdir="${tck.path}/target/test-classes">
+      <classpath>
+        <file file="${maven.repo.local}/junit/junit/3.8.1/junit-3.8.1.jar"/>
+        <dirset dir="${javax.usb.path}/target/classes"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="prepare-tck" depends="compile">
+  </target>
+
+  <target name="tck-1" depends="prepare-tck">
+    <echo>Running TCK Test CONFIG1_TOPOLOGY_B6_IMAGE</echo>
+    <echo>See tck.log for output.</echo>
+
+    <!-- This uses the local javax.usb + TCK classes -->
+    <java fork="true" failonerror="true" output="tck.log" classpathref="test"
+          classname="javax.usb.tck.CONFIG1_TOPOLOGY_B6_IMAGE">
+      <sysproperty key="javaxusbtck_home" value="${tck.path}"/>
+      <sysproperty key="java.library.path" value="javalibusb1/.libs"/>
+      <env key="LD_LIBRARY_PATH" value="${libusb.lib.path}"/>
+      <!-- For Darwin/OS X -->
+      <env key="DYLD_LIBRARY_PATH" value="${libusb.lib.path}"/>
+    </java>
+
+    <!--
+    javax.usb.tck.CONFIG2_TOPOLOGY_B6_IMAGE
+    javax.usb.tck.CONFIG3_BULKINT_B6_IMAGE
+    javax.usb.tck.CONFIG3_ISODCP_B6_IMAGE
+    javax.usb.tck.CONFIG3_TOPOLOGY_B6_IMAGE
+    javax.usb.tck.OPT_CONFIG3_ISODCP_ISOCHRONOUS
+    javax.usb.tck.OPT_CONFIG3_TOPOLOGY_SET_CONFIG
+    javax.usb.tck.OPT_CONFIG3_TOPOLOGY_SET_INTERFACE
+    javax.usb.tck.SIGNATURE
+    -->
+  </target>
+</project>

@@ -56,9 +56,6 @@ public class lsusb {
             UsbConfiguration usbConfiguration = null;
             try {
                 usbConfiguration = usbDevice.getUsbConfiguration((byte) i);
-            } catch (UsbPlatformException e) {
-                System.out.println(" Configuration #" + i + " - unable to read from device");
-                continue;
             } catch (Exception e) {
                 System.out.println(" Configuration #" + i + " - unable to read from device");
                 continue;

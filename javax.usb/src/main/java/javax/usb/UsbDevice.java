@@ -58,7 +58,7 @@ public interface UsbDevice {
 
     boolean containsUsbConfiguration(byte number) throws UsbPlatformException;
 
-    UsbConfiguration getUsbConfiguration(byte number) throws UsbPlatformException;
+    UsbConfiguration getUsbConfiguration(byte number);
 
     List<UsbConfiguration> getUsbConfigurations() throws UsbPlatformException;
 }

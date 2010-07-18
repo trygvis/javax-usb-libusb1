@@ -132,8 +132,15 @@ public class Libusb1UsbDevice implements UsbDevice, Closeable {
         return nativeGetUsbConfiguration(number) != null;
     }
 
-    public UsbConfiguration getUsbConfiguration(byte number) throws UsbPlatformException {
-        return nativeGetUsbConfiguration(number);
+    /**
+     * This is not right. The configurations probably have to be cached somewhere as we can't throw the exception out.
+     */
+    public UsbConfiguration getUsbConfiguration(byte number) {
+        try {
+            return nativeGetUsbConfiguration(number);
+        } catch (UsbPlatformException e) {
+            return null;
+        }
     }
 
     public List<UsbConfiguration> getUsbConfigurations() throws UsbPlatformException {

@@ -1,6 +1,7 @@
 *.iml
 *.ipr
 *.iwp
+*.iws
 *.la
 *.lo
 *.log
@@ -9,5 +10,6 @@
 *.swp
 .idea
 .libs
+build
 hs_err_*.log
 target
