@@ -19,9 +19,8 @@
 ; descriptors found in the TRM
 ; change however you want but leave 
 ; the descriptor pointers so the setupdat.c file works right
- 
 
-.module DEV_DSCR 
+.module DEV_DSCR
 
 ; descriptor types
 ; same as setupdat.h
