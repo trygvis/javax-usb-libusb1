@@ -14,13 +14,21 @@ volatile bit got_sud;
 
 #define BUFFER_START 0x1000
 xdata char *dest=(xdata char*)BUFFER_START;
+xdata char *BUFFER_END=(xdata char*)BUFFER_START + 0x200;
+
+void hello() {
+    IOA = 0xff;
+    IOA = 0x00;
+}
 
 void log(const char* src) {
     const char* separator = "§";
 
+    hello();
+
     // Check for buffer overflow.
     // TODO: Figure out how much to buffer
-    if(dest > (BUFFER_START + 0x100)) {
+    if(dest > BUFFER_END) {
         return;
     }
 
@@ -37,31 +45,36 @@ void log(const char* src) {
 
 void main(void)
 {
+    PORTACFG=0x00; // port A = IO
+    OEA = 0xFF; // port A[0:7] = out
+
     log("Hello world!");
 
-    // set up interrupts.
+    log("USE_USB_INTS");
     USE_USB_INTS();
 
-//    ENABLE_SUDAV();
-//    ENABLE_USBRESET();
+    log("ENABLE_SUDAV");
+    ENABLE_SUDAV();
+    log("ENABLE_USBRESET");
+    ENABLE_USBRESET();
+    log("ENABLE_HISPEED");
     ENABLE_HISPEED();
-//    ENABLE_SUSPEND();
-//    ENABLE_RESUME();
-//
-    EA=1;
-//
-//    RENUMERATE();
+    log("ENABLE_SUSPEND");
+    ENABLE_SUSPEND();
+    log("ENABLE_RESUME");
+    ENABLE_RESUME();
+
+//    EA=1;
+
+    log("RENUMERATE_UNCOND");
     RENUMERATE_UNCOND();
 
     log("Init done!");
 
-    PORTACFG=0x00; // port A = IO
-    OEA = 0xFF; // port A[0:7] = out
-
 //    dest=(xdata char*)0x1000;
     // loop endlessly
     for(tmp = 0;; tmp++) {
-       IOA = tmp;
+        IOA = tmp & 0x0f;
 
         if (got_sud) {
             log("Handle setupdata");
