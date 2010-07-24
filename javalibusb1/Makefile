@@ -9,7 +9,7 @@ CCFLAGS += -I$(JDK_HOME)/include
 CCFLAGS += -Wall
 CCFLAGS += -Werror
 
-all: libjavalibusb1.$(SHREXT)
+all: usb_reset libjavalibusb1.$(SHREXT)
 
 libjavalibusb1.$(SHREXT): javalibusb.lo usbw.lo
 	$(LIBTOOL) --mode=link --tag=CC cc -module -shared -shrext .$(SHREXT) -o libjavalibusb1.la $^ $(LDFLAGS) -rpath /usr/lib
@@ -52,3 +52,9 @@ lsusb: libjavalibusb1.$(SHREXT)
 
 ReadSerial: libjavalibusb1.$(SHREXT)
 	$(JAVA_HOME)/bin/java -classpath $(CLASSPATH) -Xcheck:jni -Djava.library.path=.:.libs $(JVM_ARGS) javalibusb1.test.ReadSerial
+
+usb_reset.o: usb_reset.c
+	$(CC) $(CCFLAGS) -c -o $@ $<
+
+usb_reset: usb_reset.o
+	$(CC) $(LDFLAGS) -o $@ $<

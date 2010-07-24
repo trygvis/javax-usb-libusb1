@@ -24,7 +24,7 @@ void hello() {
 void log(const char* src) {
     const char* separator = "§";
 
-    hello();
+//    hello();
 
     // Check for buffer overflow.
     // TODO: Figure out how much to buffer
@@ -50,6 +50,8 @@ void main(void)
 
     log("Hello world!");
 
+    while(1) {}
+
     log("USE_USB_INTS");
     USE_USB_INTS();
 
@@ -66,8 +68,8 @@ void main(void)
 
 //    EA=1;
 
-    log("RENUMERATE_UNCOND");
-    RENUMERATE_UNCOND();
+//    log("RENUMERATE_UNCOND");
+//    RENUMERATE_UNCOND();
 
     log("Init done!");
 
