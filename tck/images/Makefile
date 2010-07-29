@@ -1,15 +1,14 @@
-include Makefile.local
-
 CC=sdcc
 CPP=sdcpp
 CPP=cpp
-ASM=asx8051
+AS=asx8051
+
+include Makefile.local
 
 SDCCFLAGS=-mmcs51 \
           --code-size 0x3c00 \
           --xram-size 0x0200 \
           --xram-loc 0x3c00 \
-          -Wl"-b DSCR_AREA=0x3e00" \
           -I$(FX2LIBDIR)/include
 
 ifeq ($(FX2LIBDIR),)
@@ -37,18 +36,35 @@ list:
 target/dscr.topology.rel: target/dscr.topology.asm
 target/dscr.bulkint.rel: target/dscr.bulkint.asm
 target/dscr.iso.rel: target/dscr.iso.asm
+target/descriptors.rel: descriptors.asm
 
 target/topology.ihx: target/main.rel target/dscr.topology.rel
 target/bulkint.ihx: target/main.rel target/dscr.bulkint.rel
 target/iso.ihx: target/main.rel target/dscr.iso.rel
 
-target/dscr.%.rel: target/dscr.%.asm
-	@echo ASM `basename $<`
-	@(cd target; $(ASM) -logs `basename $<`)
+target/firmware.ihx: target/firmware.rel target/descriptors.rel
+	@echo LD $@
+	$(CC) $(SDCCFLAGS) -o $@ $^ fx2.lib -L$(FX2LIBDIR)/lib
 
-target/main.rel: main.c
+target/dscr.%.rel: target/dscr.%.asm
+	@echo AS `basename $<`
+	@(cd target; $(AS) -logs `basename $<`)
+
+target/%.rel: %.asm
+	@echo AS $<
+	$(AS) -logs $<
+	@mkdir -p target
+	@mv *.rel target/
+	@mv *.lst target/
+	@mv *.sym target/
+
+#target/main.rel: main.c
+#	@echo CC $<
+#	@$(CC) $(SDCCFLAGS) -c -o $@ $<
+
+target/%.rel: %.c
 	@echo CC $<
-	@$(CC) $(SDCCFLAGS) -c -o $@ $<
+	$(CC) $(SDCCFLAGS) -c -o $@ $<
 
 program-%: target/%.ihx
 	cycfx2prog $(OPT_D) prg:$< run
@@ -67,4 +83,4 @@ target/dscr.iso.asm: dscr.asm
 
 target/%.ihx: target/main.rel target/dscr.%.rel
 	@echo LD $@
-	@$(CC) $(SDCCFLAGS) -o $@ $^ fx2.lib -L$(FX2LIBDIR)/lib
+	$(CC) $(SDCCFLAGS) -Wl"-b DSCR_AREA=0x3e00" -o $@ $^ fx2.lib -L$(FX2LIBDIR)/lib 
