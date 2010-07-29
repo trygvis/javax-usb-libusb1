@@ -36,15 +36,10 @@ list:
 target/dscr.topology.rel: target/dscr.topology.asm
 target/dscr.bulkint.rel: target/dscr.bulkint.asm
 target/dscr.iso.rel: target/dscr.iso.asm
-target/descriptors.rel: descriptors.asm
 
 target/topology.ihx: target/main.rel target/dscr.topology.rel
 target/bulkint.ihx: target/main.rel target/dscr.bulkint.rel
 target/iso.ihx: target/main.rel target/dscr.iso.rel
-
-target/firmware.ihx: target/firmware.rel target/descriptors.rel
-	@echo LD $@
-	$(CC) $(SDCCFLAGS) -o $@ $^ fx2.lib -L$(FX2LIBDIR)/lib
 
 target/dscr.%.rel: target/dscr.%.asm
 	@echo AS `basename $<`
