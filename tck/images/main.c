@@ -28,7 +28,8 @@ void log(const char* src) {
 
     // Check for buffer overflow.
     // TODO: Figure out how much to buffer
-    if(dest > BUFFER_END) {
+    if(dest > BUFFER_END)
+    {
         return;
     }
 
@@ -50,8 +51,6 @@ void main(void)
 
     log("Hello world!");
 
-    while(1) {}
-
     log("USE_USB_INTS");
     USE_USB_INTS();
 
@@ -66,10 +65,11 @@ void main(void)
     log("ENABLE_RESUME");
     ENABLE_RESUME();
 
-//    EA=1;
+    log("EA=1");
+    EA=1;
 
-//    log("RENUMERATE_UNCOND");
-//    RENUMERATE_UNCOND();
+    log("RENUMERATE_UNCOND");
+    RENUMERATE_UNCOND();
 
     log("Init done!");
 
@@ -133,25 +133,30 @@ void handle_reset_ep(BYTE ep) {
 // -----------------------------------------------------------------------
 
 void sudav_isr() interrupt SUDAV_ISR {
+    log("sudav_isr");
     got_sud=TRUE;
     CLEAR_SUDAV();
 }
 
 void usbreset_isr() interrupt USBRESET_ISR {
+    log("usbreset_isr");
     handle_hispeed(FALSE);
     CLEAR_USBRESET();
 }
 
 void hispeed_isr() interrupt HISPEED_ISR {
+    log("hispeed_isr");
     handle_hispeed(TRUE);
     CLEAR_HISPEED();
 }
 
 void resume_isr() interrupt RESUME_ISR {
+    log("resume_isr");
     CLEAR_RESUME();
 }
 
 void suspend_isr() interrupt SUSPEND_ISR {
+    log("suspend_isr");
     dosuspend=TRUE;
     CLEAR_SUSPEND();
 }

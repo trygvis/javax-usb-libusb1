@@ -106,4 +106,11 @@ To load the firmware:
 
     TODO: Add output of `make list`.
 
+Notes
+=====
+
+Understand this firmware:
+http://github.com/Dopi/JetKernel/blob/fe56cc9237ef9409e25fefca446b277263879c5e/firmware/keyspan_pda/keyspan_pda.S
+Investigate autovectoring.
+
 [fx2lib]: http://github.com/mulicheng/fx2lib "fx2lib"
