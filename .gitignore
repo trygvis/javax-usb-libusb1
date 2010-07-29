@@ -13,3 +13,4 @@
 build
 hs_err_*.log
 target
+*.local
