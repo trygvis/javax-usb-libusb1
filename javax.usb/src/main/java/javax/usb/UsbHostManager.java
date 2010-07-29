@@ -5,7 +5,7 @@ import java.util.*;
 
 public final class UsbHostManager {
 
-    public static final String JAVAX_USB_USBSERVICES_PROPERTY = "javax.usb.usbservices";
+    public static final String JAVAX_USB_USBSERVICES_PROPERTY = "javax.usb.services";
 
     public static final String JAVAX_USB_PROPERTIES_FILE = "javax.usb.properties";
 
