@@ -15,7 +15,7 @@ volatile __bit got_sud;
 __xdata char *dest=(__xdata char*)BUFFER_START;
 __xdata char *BUFFER_END=(__xdata char*)BUFFER_START + 0x200;
 
-void hello_n(int i) {
+void hello_n(BYTE i) {
     IOA = IOA | (1 << i);
     IOA = IOA & ~(1 << i);
 }
@@ -60,45 +60,72 @@ void main(void)
 
     log("Hello world!");
 
+    REVCTL=0; // not using advanced endpoint controls
+
+    got_sud=FALSE;
+    log("RENUMERATE_UNCOND");
+    RENUMERATE_UNCOND();
+
     log("SETCPUFREQ(CLK_48M)");
     SETCPUFREQ(CLK_48M);
+
+    log("SETIF48MHZ");
+    SETIF48MHZ();
 
     log("USE_USB_INTS");
     USE_USB_INTS();
 
     log("ENABLE_SUDAV");
     ENABLE_SUDAV();
+//    log("ENABLE_SOF");
+//    ENABLE_SOF();
     log("ENABLE_USBRESET");
     ENABLE_USBRESET();
     log("ENABLE_HISPEED");
     ENABLE_HISPEED();
-    log("ENABLE_SUSPEND");
-    ENABLE_SUSPEND();
-    log("ENABLE_RESUME");
-    ENABLE_RESUME();
+//    log("ENABLE_SUSPEND");
+//    ENABLE_SUSPEND();
+//    log("ENABLE_RESUME");
+//    ENABLE_RESUME();
+
+    // Endpoint 1
+    EP1INCFG &= ~bmVALID;
+    SYNCDELAY();
+
+    // Endpoint 2
+    // valid=1, direction=0 out, type=10 bulk, size=0 (512), reserved=0, buffering=10 (double)
+    EP2CFG = 0xA2; // 10100010
+    SYNCDELAY();
+
+    // Endpoint 4
+    EP4CFG &= ~bmVALID;
+    SYNCDELAY();
+
+    // Endpoint 6
+    // valid=1, direction=1 in, type=10 bulk, size=0 (512), reserved=0, buffering=10 (double)
+    EP6CFG = 0xE2; // 11100010
+    SYNCDELAY();
+
+    // Endpoint 8
+    EP8CFG &= ~bmVALID;
+    SYNCDELAY();
 
     log("EA=1");
     hello_n(7);
     EA=1;
-    hello_n(7);
-
-    log("RENUMERATE_UNCOND");
-    RENUMERATE_UNCOND();
 
     log("Init done!");
 
     // loop endlessly
     for(tmp = 0;; tmp++) {
-//        IOA = tmp & 0x0f;
+        hello_n(7);
 
         if (got_sud) {
+            hello_n(6);
             log("Handle setupdata");
             handle_setupdata();
             got_sud=FALSE;
         }
-//        else {
-//            log("poop");
-//        }
     }
 }
 
@@ -145,6 +172,8 @@ void handle_reset_ep(BYTE ep) {
 //
 // -----------------------------------------------------------------------
 
+// TODO: Add sut_isr
+
 void sudav_isr() __interrupt SUDAV_ISR {
     hello_n(0);
     log("sudav_isr");
@@ -179,7 +208,7 @@ void suspend_isr() __interrupt SUSPEND_ISR {
     CLEAR_SUSPEND();
 }
 
-
+/*
 void sutok_isr() __interrupt SUTOK_ISR {hello_n(5);}
 void ep0ack_isr() __interrupt EP0ACK_ISR {hello_n(5);}
 void ep0in_isr() __interrupt EP0IN_ISR {hello_n(5);}
@@ -217,3 +246,4 @@ void ep6ff_isr() __interrupt EP6FF_ISR{hello_n(5);}
 void ep8ff_isr() __interrupt EP8FF_ISR{hello_n(5);}
 void gpifdone_isr() __interrupt GPIFDONE_ISR{hello_n(5);}
 void gpifwf_isr() __interrupt GPIFWF_ISR{hello_n(5);}
+*/

@@ -56,8 +56,12 @@ _dev_dscr:
 	.db	0xff					  ; protocol (vendor specific)
 	.db	64						  ; packet size (ep0)
 	.dw	0x4705					  ; vendor id 
+; #ifdefTOPOLOGY
 	.dw	0x01ff					  ; product id
-	.dw	0x0100					  ; version id
+; #else
+;	.dw	0x0210					  ; product id
+; #endif
+	.dw	0x0001					  ; version id
 	.db	2		                  ; manufacturure str idx
 	.db	1				          ; product str idx	
 	.db	0				          ; serial str idx 

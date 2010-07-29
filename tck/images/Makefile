@@ -48,11 +48,11 @@ target/firmware.ihx: target/firmware.rel target/descriptors.rel
 
 target/dscr.%.rel: target/dscr.%.asm
 	@echo AS `basename $<`
-	@(cd target; $(AS) -logs `basename $<`)
+	@(cd target; $(AS) -logsp `basename $<`)
 
 target/%.rel: %.asm
 	@echo AS $<
-	$(AS) -logs $<
+	$(AS) -logsp $<
 	@mkdir -p target
 	@mv *.rel target/
 	@mv *.lst target/
@@ -83,4 +83,4 @@ target/dscr.iso.asm: dscr.asm
 
 target/%.ihx: target/main.rel target/dscr.%.rel
 	@echo LD $@
-	$(CC) $(SDCCFLAGS) -Wl"-b DSCR_AREA=0x3e00" -o $@ $^ fx2.lib -L$(FX2LIBDIR)/lib 
+	$(CC) $(SDCCFLAGS) -Wl"-b INT2JT = 0x1A00" -Wl"-b DSCR_AREA=0x3e00" -o $@ $^ fx2.lib -L$(FX2LIBDIR)/lib 
