@@ -1,4 +1,4 @@
-#include <libusb.h>
+#include "usbw.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -23,18 +23,18 @@ int main(int argc, char* argv[]) {
 
     libusb_set_debug(ctx, 3);
 
-    if((device_handle = libusb_open_device_with_vid_pid(ctx, vendor_id, product_id)) == NULL) {
+    if((device_handle = usbw_open_device_with_vid_pid(ctx, vendor_id, product_id)) == NULL) {
         perror("Unable to open device.");
         exit(EXIT_FAILURE);
     }
 
     fprintf(stderr, "Resetting device...\n");
 
-    ret = libusb_reset_device(device_handle);
+    ret = usbw_reset_device(device_handle);
 
     fprintf(stderr, "Device reset, return: %d\n", ret);
 
-    libusb_close(device_handle);
+    usbw_close(device_handle);
 
     libusb_exit(ctx);
 

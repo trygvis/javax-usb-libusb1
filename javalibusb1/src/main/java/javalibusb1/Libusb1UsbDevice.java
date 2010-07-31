@@ -16,13 +16,21 @@ public class Libusb1UsbDevice implements UsbDevice, Closeable {
      * Used by the native code
      */
     @SuppressWarnings({"FieldCanBeLocal", "UnusedDeclaration"})
-    final int libusb_device;
+    final long libusb_device;
     public final byte busNumber;
     public final byte deviceAddress;
     public final Object speed;
     private final UsbDeviceDescriptor usbDeviceDescriptor;
 
     private final List<UsbDeviceListener> deviceListeners = new ArrayList<UsbDeviceListener>();
+
+    /**
+     * Holds all the current configurations. Will be injected from the JNI code.
+     */
+    private UsbConfiguration[] configurations = new UsbConfiguration[256];
+    private byte activeConfiguration;
+
+    private boolean closed;
 
     public Libusb1UsbDevice(int libusb_device_, byte busNumber, byte deviceAddress, int speed, UsbDeviceDescriptor usbDeviceDescriptor) {
         this.libusb_device = libusb_device_;
@@ -61,7 +69,8 @@ public class Libusb1UsbDevice implements UsbDevice, Closeable {
     }
 
     public String getString(byte index) throws UsbException {
-        String s = getStringNative(index, 1024);
+        System.out.println("libusb_device = " + Long.toHexString(libusb_device));
+        String s = nativeGetString(libusb_device, index, 1024);
 
         // It would be nice to have a way to know if the device had disconnected here and
         // throw a UsbDisconnectedException() instead.
@@ -124,45 +133,70 @@ public class Libusb1UsbDevice implements UsbDevice, Closeable {
         throw new RuntimeException("Not implemented");
     }
 
-    public UsbConfiguration getActiveUsbConfiguration() throws UsbPlatformException {
-        return nativeGetActiveUsbConfiguration();
+    public byte getActiveUsbConfigurationNumber() {
+        throw new RuntimeException("Not implemented");
     }
 
-    public boolean containsUsbConfiguration(byte number) throws UsbPlatformException {
-        return nativeGetUsbConfiguration(number) != null;
+    public UsbConfiguration getActiveUsbConfiguration() {
+        // TOOD: This is according to the specification, but what happens if
+        // another process changes the configuration?
+        return getUsbConfiguration(activeConfiguration);
+
+        //try {
+        //    return nativeGetActiveUsbConfiguration();
+        //} catch (UsbPlatformException e) {
+        //    throw new RuntimeException(e);
+        //}
     }
 
-    /**
-     * This is not right. The configurations probably have to be cached somewhere as we can't throw the exception out.
-     */
+    public boolean containsUsbConfiguration(byte number){
+        return configurations[number] != null;
+        //try {
+        //    return nativeGetUsbConfiguration(number) != null;
+        //} catch (UsbPlatformException e) {
+        //    throw new RuntimeException(e);
+        //}
+    }
+
     public UsbConfiguration getUsbConfiguration(byte number) {
-        try {
-            return nativeGetUsbConfiguration(number);
-        } catch (UsbPlatformException e) {
+        if(number == 0) {
+            System.err.println("Usb configuration #0 was requested.");
             return null;
         }
+
+        return configurations[number];
+        // This is not right. The configurations probably have to be cached somewhere as we can't throw the exception out.
+        //try {
+        //    return nativeGetUsbConfiguration(number);
+        //} catch (UsbPlatformException e) {
+        //    throw new RuntimeException("getUsbConfiguration", e);
+        //}
     }
 
-    public List<UsbConfiguration> getUsbConfigurations() throws UsbPlatformException {
-        byte n = getUsbDeviceDescriptor().bNumConfigurations();
-        List<UsbConfiguration> list = new ArrayList<UsbConfiguration>(n);
-        for (byte i = 0; i < n; i++) {
-            list.add(getUsbConfiguration(i));
-        }
-        return list;
+    public List<UsbConfiguration> getUsbConfigurations() {
+        return Arrays.asList(configurations);
+        //byte n = getUsbDeviceDescriptor().bNumConfigurations();
+        //List<UsbConfiguration> list = new ArrayList<UsbConfiguration>(n);
+        //for (byte i = 0; i < n; i++) {
+        //    list.add(getUsbConfiguration(i));
+        //}
+        //return list;
     }
 
     // -----------------------------------------------------------------------
     //
     // -----------------------------------------------------------------------
 
-    public void close() throws IOException {
-        closeNative();
+    public synchronized void close() throws IOException {
+        closed = true;
+        nativeClose(libusb_device);
     }
 
     @Override
     protected void finalize() throws Throwable {
-        close();
+        if(!closed) {
+            close();
+        }
     }
 
     private void internalSyncSubmit(UsbControlIrp irp) throws UsbException {
@@ -187,21 +221,29 @@ public class Libusb1UsbDevice implements UsbDevice, Closeable {
     // Native Interface
     // -----------------------------------------------------------------------
 
+    public void _setConfiguration(UsbConfiguration configuration, byte n) {
+        configurations[n] = configuration;
+    }
+
+    public void _setActiveConfiguration(byte n) {
+        activeConfiguration = n;
+    }
+
     native
-    public void closeNative();
+    public void nativeClose(long device);
 
     /**
      * Returns null on failure.
      */
     native
-    private String getStringNative(byte index, int length)
+    private String nativeGetString(long device, byte index, int length)
         throws UsbPlatformException;
 
-    native
-    private UsbConfiguration nativeGetActiveUsbConfiguration()
-        throws UsbPlatformException;
+//    native
+//    private UsbConfiguration nativeGetActiveUsbConfiguration()
+//        throws UsbPlatformException;
 
-    native
-    private UsbConfiguration nativeGetUsbConfiguration(byte number)
-        throws UsbPlatformException;
+//    native
+//    private UsbConfiguration nativeGetUsbConfiguration(byte number)
+//        throws UsbPlatformException;
 }

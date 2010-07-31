@@ -8,8 +8,17 @@ CC      ?= gcc
 CCFLAGS += -I$(JDK_HOME)/include
 CCFLAGS += -Wall
 CCFLAGS += -Werror
+# CCFLAGS += -m64 # Add this for 64-bit version
 
-all: usb_reset libjavalibusb1.$(SHREXT)
+all: check tools lib
+
+check: check_jvm_platform
+	@./check_jvm_platform
+
+TOOLS=usb_open_twice usb_get_config_descriptor usb_reset
+tools: $(TOOLS)
+
+lib: libjavalibusb1.$(SHREXT)
 
 libjavalibusb1.$(SHREXT): javalibusb.lo usbw.lo
 	$(LIBTOOL) --mode=link --tag=CC cc -module -shared -shrext .$(SHREXT) -o libjavalibusb1.la $^ $(LDFLAGS) -rpath /usr/lib
@@ -42,7 +51,8 @@ clean-java:
 	rm -rf target/classes target/test-classes
 
 clean-native:
-	rm -rf *.lo *.la *.so $(wildcard core) $(wildcard hs_err_pid*)
+	@rm -rf *.lo *.la *.so $(wildcard core) $(wildcard hs_err_pid*) $(wildcard *.o)
+	@rm -f $(TOOLS)
 
 test: libjavalibusb1.$(SHREXT)
 	$(JAVA_HOME)/bin/java -classpath $(CLASSPATH) -Xcheck:jni -Djava.library.path=.:.libs $(JVM_ARGS) javalibusb1.test.JUsbTest
@@ -53,8 +63,15 @@ lsusb: libjavalibusb1.$(SHREXT)
 ReadSerial: libjavalibusb1.$(SHREXT)
 	$(JAVA_HOME)/bin/java -classpath $(CLASSPATH) -Xcheck:jni -Djava.library.path=.:.libs $(JVM_ARGS) javalibusb1.test.ReadSerial
 
-usb_reset.o: usb_reset.c
-	$(CC) $(CCFLAGS) -c -o $@ $<
+usb_get_config_descriptor: usb_get_config_descriptor.o usbw.o
+usb_open_twice: usb_open_twice.o usbw.o
+usb_reset: usb_reset.o usbw.o
+check_jvm_platform: check_jvm_platform.o
 
-usb_reset: usb_reset.o
-	$(CC) $(LDFLAGS) -o $@ $<
+%.o: %.c
+	@echo CC $<
+	@$(CC) $(CCFLAGS) -c -g -o $@ $^
+
+%: %.o
+	@echo LD $@
+	@$(CC) $(CCFLAGS) $(LDFLAGS) -o $@ $^

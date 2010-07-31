@@ -14,7 +14,7 @@ public class Libusb1UsbInterface implements UsbInterface {
     public final UsbEndpoint[] endpoints;
     private boolean active;
     @SuppressWarnings({"FieldCanBeLocal", "UnusedDeclaration"})
-    private final int libusb_device;
+    private final long libusb_device;
 
     // Hey you, don't touch me!
     int libusb_handle;
@@ -36,10 +36,10 @@ public class Libusb1UsbInterface implements UsbInterface {
 
     // Should do set_configuration+claim_interface
     public void claim() throws UsbException {
-        nativeSetConfiguration(configuration.configurationDescriptor.bConfigurationValue());
+        nativeSetConfiguration(libusb_device, configuration.configurationDescriptor.bConfigurationValue());
         configuration.setActive(true);
 
-        libusb_handle = nativeClaimInterface(descriptor.bInterfaceNumber());
+        libusb_handle = nativeClaimInterface(libusb_device, descriptor.bInterfaceNumber());
     }
 
     public void claim(UsbInterfacePolicy policy) throws UsbException {
@@ -133,11 +133,11 @@ public class Libusb1UsbInterface implements UsbInterface {
     // -----------------------------------------------------------------------
 
     native
-    private void nativeSetConfiguration(int configuration)
+    private void nativeSetConfiguration(long device, int configuration)
         throws UsbException;
 
     native
-    private int nativeClaimInterface(int bInterfaceNumber);
+    private int nativeClaimInterface(long device, int bInterfaceNumber);
 
     native
     private void nativeRelease(int libusb_handle)

@@ -1,18 +1,26 @@
 #include "javalibusb1_libusb1.h"
 #include "usbw.h"
 #include <stdlib.h>
+#include <stdarg.h>
 
-/*
- * This code has an implicit assumption on that sizeof(int) == sizeof(void*).
- */
+// This hack is needed when storing the context and device pointers in the Java
+// objects. The pointers are stored in a jlong and has to be cast back to a
+// pointer type to prevent warnings from the compiler.
+// The check_jvm_platform asserts that a jlong can store the pointer.
+#ifdef __LP64__
+#define POINTER_STORAGE_TYPE long
+#else
+#define POINTER_STORAGE_TYPE int
+#endif
 
-/* javalibusb1.Libusb1UsbServices */
-jfieldID usb_services_context_field;
+/* javalibusb1.libusb1 */
+jfieldID libusb_context_field;
 
 /* javalibusb1.Libusb1UsbDevice */
 jclass libusb1UsbDeviceClass = NULL;
 jmethodID libusb1UsbDeviceConstructor = NULL;
-jfieldID device_libusb_device_field;
+jmethodID libusb1UsbDeviceSetConfiguration = NULL;
+jmethodID libusb1UsbDeviceSetActiveConfiguration = NULL;
 
 /* javalibusb1.Libusb1UsbConfiguration */
 jclass libusb1UsbConfigurationClass = NULL;
@@ -21,7 +29,6 @@ jmethodID libusb1UsbConfigurationConstructor = NULL;
 /* javalibusb1.Libusb1UsbInterface */
 jclass libusb1UsbInterfaceClass = NULL;
 jmethodID libusb1UsbInterfaceConstructor = NULL;
-jfieldID interface_libusb_device_field;
 
 /* javalibusb1.Libusb1UsbEndpoint */
 jclass libusb1UsbEndpointClass = NULL;
@@ -52,6 +59,7 @@ jmethodID usbPlatformExceptionConstructorMsgCode = NULL;
 
 /* javax.usb.UsbDisconnectedException */
 jclass usbDisconnectedExceptionClass = NULL;
+jmethodID usbDisconnectedExceptionConstructorMsg = NULL;
 
 /* javax.usb.impl.DefaultUsbDeviceDescriptor */
 jclass defaultUsbDeviceDescriptorClass = NULL;
@@ -69,17 +77,6 @@ jmethodID defaultUsbInterfaceDescriptorConstructor = NULL;
 jclass defaultUsbEndpointDescriptorClass = NULL;
 jmethodID defaultUsbEndpointDescriptorConstructor = NULL;
 
-/* javax.usb.UsbConst */
-jclass usbConstClass = NULL;
-jobject DEVICE_SPEED_LOW = NULL;
-jobject DEVICE_SPEED_FULL = NULL;
-jobject DEVICE_SPEED_HIGH = NULL;
-jobject DEVICE_SPEED_UNKNOWN = NULL;
-
-struct usb_services_context {
-    struct libusb_context* libusb_context;
-};
-
 /*
 TODO: Make a construct() method that looks up and add a reference to the class objects and a
 destroy() method that releases them again. These should be called by the constructor so that the JVM
@@ -89,12 +86,14 @@ usb_init() should be called as a part of the static initializer.
 */
 
 static jclass findAndReferenceClass(JNIEnv *env, const char* name) {
-    printf("Loading class %s\n", name);
+    fprintf(stderr, "Loading class %s\n", name);
+    fflush(stderr);
     jclass klass = (*env)->FindClass(env, name);
 
     if(klass == NULL) {
         (*env)->ExceptionClear(env);
-        printf("Error finding class %s\n", name);
+        fprintf(stderr, "Error finding class %s\n", name);
+        fflush(stderr);
         (*env)->FatalError(env, name);
         return NULL;
     }
@@ -103,7 +102,8 @@ static jclass findAndReferenceClass(JNIEnv *env, const char* name) {
 
     if(klass == NULL) {
         (*env)->ExceptionClear(env);
-        printf("Error adding reference to class %s\n", name);
+        fprintf(stderr, "Error adding reference to class %s\n", name);
+        fflush(stderr);
         (*env)->FatalError(env, name);
         return NULL;
     }
@@ -116,29 +116,29 @@ static void unreferenceClass(JNIEnv *env, jclass* klass) {
     *klass = NULL;
 }
 
-static jobject getStaticObjectField(JNIEnv *env, jclass klass, const char *fieldName) {
-    jfieldID fieldID;
-
-    if((fieldID = (*env)->GetStaticFieldID(env, klass, fieldName, "Ljava/lang/Object;")) == NULL) {
-        return NULL;
-    }
-    return (*env)->GetStaticObjectField(env, klass, fieldID);
-}
-
 static void throwPlatformException(JNIEnv *env, const char *message)
 {
     (*env)->ThrowNew(env, usbPlatformExceptionClass, message);
 }
 
-static void throwPlatformExceptionMsgCode(JNIEnv *env, const char *message, int errorCode)
+static void throwPlatformExceptionMsgCode(JNIEnv *env, int errorCode, const char *format, ...)
 {
+    char buf[1024];
+    va_list ap;
+    va_start(ap, format);
+    (void)vsnprintf(buf, 1024, format, ap);
+    va_end(ap);
+
+    jstring s = (*env)->NewStringUTF(env, buf);
+
+    jobject e;
     if(errorCode == LIBUSB_ERROR_NO_DEVICE) {
-        (*env)->ThrowNew(env, usbDisconnectedExceptionClass, message);
-        return;
+        e = (*env)->NewObject(env, usbDisconnectedExceptionClass, usbDisconnectedExceptionConstructorMsg, s);
+    }
+    else {
+        e = (*env)->NewObject(env, usbPlatformExceptionClass, usbPlatformExceptionConstructorMsgCode, s, (jint)errorCode);
     }
 
-    jstring s = (*env)->NewStringUTF(env, message);
-    jobject e = (*env)->NewObject(env, usbPlatformExceptionClass, usbPlatformExceptionConstructorMsgCode, s, (jint)errorCode);
     (*env)->Throw(env, e);
 }
 
@@ -193,7 +193,6 @@ static jobject config_descriptor2usbConfiguration(JNIEnv *env, jobject usbDevice
     if((interfacesArrayArray = (*env)->NewObjectArray(env, config_descriptor->bNumInterfaces, usbInterfaceArrayClass, NULL)) == NULL) {
         return NULL;
     }
-
 
     // If the device is not known to be active, but the bConfigurationValue matches the currently
     // active configuration value, then it's active
@@ -250,6 +249,9 @@ static jobject config_descriptor2usbConfiguration(JNIEnv *env, jobject usbDevice
 
                 usbEndpoint = (*env)->NewObject(env, libusb1UsbEndpointClass, libusb1UsbEndpointConstructor,
                     usbInterface, usbEndpointDescriptor);
+                if(usbEndpoint == NULL) {
+                    return NULL;
+                }
 
                 (*env)->SetObjectArrayElement(env, endpoints, k, usbEndpoint);
                 if((*env)->ExceptionCheck(env)) {
@@ -273,24 +275,43 @@ JNIEXPORT void JNICALL Java_javalibusb1_libusb1_set_1trace_1calls
     usbw_set_trace_calls(on);
 }
 
+/**
+ * Initializes the library in three phases:
+ *
+ * I) Create a libusb context
+ * II) Look up all the required Java classes, fields and methods
+ * III) Create the libusb object and return it.
+ *
+ * TODO: To prevent possible bugs, consider passing all Class as a reference
+ * to the classhas to be registered with the JVM and unregistered when closed.
+ * An alternative is to put all references in a list (libusb has an
+ * implementation) and just iterate that on close().
+ */
 JNIEXPORT jobject JNICALL Java_javalibusb1_libusb1_create
   (JNIEnv *env, jclass klass)
 {
-    struct usb_services_context *context = NULL;
+    struct libusb_context *context;
 
-    /* Lookups */
-    if((usb_services_context_field = (*env)->GetFieldID(env, klass, "usb_services_context", "I")) == NULL) {
+    /* Initalization, Phase I */
+    if(usbw_init(&context)) {
+        throwPlatformException(env, "Unable to initialize libusb.");
         goto fail;
     }
 
+    /* Initalization, Phase II */
+    // TODO: Create some macros to do the lookups
+    /* Lookups */
     if((libusb1UsbDeviceClass = findAndReferenceClass(env, "javalibusb1/Libusb1UsbDevice")) == NULL) {
         return NULL;
     }
     if((libusb1UsbDeviceConstructor = (*env)->GetMethodID(env, libusb1UsbDeviceClass, "<init>", "(IBBILjavax/usb/UsbDeviceDescriptor;)V")) == NULL) {
         return NULL;
     }
-    if((device_libusb_device_field = (*env)->GetFieldID(env, libusb1UsbDeviceClass, "libusb_device", "I")) == NULL) {
-        goto fail;
+    if((libusb1UsbDeviceSetConfiguration = (*env)->GetMethodID(env, libusb1UsbDeviceClass, "_setConfiguration", "(Ljavax/usb/UsbConfiguration;B)V")) == NULL) {
+        return NULL;
+    }
+    if((libusb1UsbDeviceSetActiveConfiguration = (*env)->GetMethodID(env, libusb1UsbDeviceClass, "_setActiveConfiguration", "(B)V")) == NULL) {
+        return NULL;
     }
 
     if((libusb1UsbConfigurationClass = findAndReferenceClass(env, "javalibusb1/Libusb1UsbConfiguration")) == NULL) {
@@ -305,9 +326,6 @@ JNIEXPORT jobject JNICALL Java_javalibusb1_libusb1_create
     }
     if((libusb1UsbInterfaceConstructor = (*env)->GetMethodID(env, libusb1UsbInterfaceClass, "<init>", "(Ljavalibusb1/Libusb1UsbConfiguration;Ljavax/usb/UsbInterfaceDescriptor;[Ljavax/usb/UsbEndpoint;Z)V")) == NULL) {
         return NULL;
-    }
-    if((interface_libusb_device_field = (*env)->GetFieldID(env, libusb1UsbInterfaceClass, "libusb_device", "I")) == NULL) {
-        goto fail;
     }
 
     if((libusb1UsbEndpointClass = findAndReferenceClass(env, "javalibusb1/Libusb1UsbEndpoint")) == NULL) {
@@ -354,6 +372,9 @@ JNIEXPORT jobject JNICALL Java_javalibusb1_libusb1_create
     if((usbDisconnectedExceptionClass = findAndReferenceClass(env, "javax/usb/UsbDisconnectedException")) == NULL) {
         return NULL;
     }
+    if((usbDisconnectedExceptionConstructorMsg = (*env)->GetMethodID(env, usbDisconnectedExceptionClass, "<init>", "(Ljava/lang/String;)V")) == NULL) {
+        return NULL;
+    }
 
     if((defaultUsbDeviceDescriptorClass = findAndReferenceClass(env, "javax/usb/impl/DefaultUsbDeviceDescriptor")) == NULL) {
         return NULL;
@@ -383,52 +404,21 @@ JNIEXPORT jobject JNICALL Java_javalibusb1_libusb1_create
         return NULL;
     }
 
-    /* Find constants from UsbConst */
-    if((usbConstClass = findAndReferenceClass(env, "javax/usb/UsbConst")) == NULL) {
-        return NULL;
-    }
-    if((DEVICE_SPEED_LOW = getStaticObjectField(env, usbConstClass, "DEVICE_SPEED_LOW")) == NULL) {
-        return NULL;
-    }
-    if((DEVICE_SPEED_FULL = getStaticObjectField(env, usbConstClass, "DEVICE_SPEED_FULL")) == NULL) {
-        return NULL;
-    }
-    if((DEVICE_SPEED_HIGH = getStaticObjectField(env, usbConstClass, "DEVICE_SPEED_HIGH")) == NULL) {
-        return NULL;
-    }
-    if((DEVICE_SPEED_UNKNOWN = getStaticObjectField(env, usbConstClass, "DEVICE_SPEED_UNKNOWN")) == NULL) {
-        return NULL;
-    }
-
-    /* Initialization */
-    context = malloc(sizeof(struct usb_services_context));
-
-    if(context == NULL) {
-        (*env)->FatalError(env, "Unable to allocate context.");
-        goto fail;
-    }
-
-    if(usbw_init(&context->libusb_context)) {
-        throwPlatformException(env, "Unable to initialize libusb");
-        goto fail;
-    }
-
-    jmethodID c = (*env)->GetMethodID(env, klass, "<init>", "(I)V");
+    /* Initialization, phase III */
+    jmethodID c = (*env)->GetMethodID(env, klass, "<init>", "(J)V");
 
     return (*env)->NewObject(env, klass, c, context);
 
 fail:
-    free(context);
     return NULL;
 }
 
 JNIEXPORT void JNICALL Java_javalibusb1_libusb1_close
-    (JNIEnv *env, jobject obj)
+    (JNIEnv *env, jobject obj, jlong java_context)
 {
-    struct usb_services_context *context = (struct usb_services_context*)(*env)->GetIntField(env, obj, usb_services_context_field);
+    struct libusb_context *context = (struct libusb_context *)(POINTER_STORAGE_TYPE)java_context;
 
     // In the oposite order of referencing
-    unreferenceClass(env, &usbConstClass);
     unreferenceClass(env, &defaultUsbEndpointDescriptorClass);
     unreferenceClass(env, &defaultUsbInterfaceDescriptorClass);
     unreferenceClass(env, &defaultUsbConfigurationDescriptorClass);
@@ -447,39 +437,85 @@ JNIEXPORT void JNICALL Java_javalibusb1_libusb1_close
     unreferenceClass(env, &libusb1UsbConfigurationClass);
     unreferenceClass(env, &libusb1UsbDeviceClass);
 
-    usbw_exit(context->libusb_context);
-    free(context);
+    usbw_exit(context);
 }
 
 JNIEXPORT void JNICALL Java_javalibusb1_libusb1_set_1debug
-    (JNIEnv *env, jobject obj, jint level)
+    (JNIEnv *env, jobject obj, jlong java_context, jint level)
 {
-    struct usb_services_context* context;
+    struct libusb_context *context = (struct libusb_context *)(POINTER_STORAGE_TYPE)java_context;
 
-    context = (struct usb_services_context*)(*env)->GetIntField(env, obj, usb_services_context_field);
+    usbw_set_debug(context, level);
+}
 
-    usbw_set_debug(context->libusb_context, level);
+int load_configurations(JNIEnv *env, struct libusb_device *device, uint8_t bNumConfigurations, jobject usbDevice, struct libusb_device_descriptor descriptor) {
+    int err;
+    struct libusb_device_handle* handle;
+    // On Darwin the device has to be open while querying for the descriptor
+    if((err = usbw_open(device, &handle))) {
+        throwPlatformExceptionMsgCode(env, err, "libusb_open(): %s", usbw_error_to_string(err));
+        return 0;
+    }
+
+    int failed = 0;
+    struct libusb_config_descriptor *config_descriptor = NULL;
+    int index;
+    for(index = 0; index < bNumConfigurations; index++) {
+        if((err = usbw_get_config_descriptor(device, index, &config_descriptor))) {
+            throwPlatformExceptionMsgCode(env, err, "libusb_get_config_descriptor(): %s", usbw_error_to_string(err));
+            break;
+        }
+
+        int config;
+        if((err = usbw_get_configuration(handle, &config))) {
+            usbw_free_config_descriptor(config_descriptor);
+            // This happens on OSX with Apple's IR Receiver which almost always is suspended
+            // fprintf(stderr, "**** get_configuration: could not get descriptor with index %d of %d in total. Skipping device %04x:%04x, err=%s\n", index, bNumConfigurations, descriptor.idVendor, descriptor.idProduct, usbw_error_to_string(err));
+            // fflush(stderr);
+            // throwPlatformExceptionMsgCode(env, err, "libusb_get_configuration(): %s", usbw_error_to_string(err));
+            failed = 1;
+            break;
+        }
+
+        jobject usbConfiguration = config_descriptor2usbConfiguration(env, usbDevice, config_descriptor, JNI_FALSE, config);
+        usbw_free_config_descriptor(config_descriptor);
+        if((*env)->ExceptionCheck(env)) {
+            break;
+        }
+
+        (*env)->CallVoidMethod(env, usbDevice, libusb1UsbDeviceSetConfiguration, usbConfiguration, index + 1);
+    }
+
+    usbw_close(handle);
+
+    return failed;
 }
 
 JNIEXPORT jobjectArray JNICALL Java_javalibusb1_libusb1_get_1devices
-    (JNIEnv *env, jobject obj)
+    (JNIEnv *env, jobject obj, jlong java_context)
 {
+    struct libusb_context *context = (struct libusb_context *)(POINTER_STORAGE_TYPE)java_context;
     struct libusb_device **devices;
     struct libusb_device *d;
     struct libusb_device_descriptor descriptor;
-    struct usb_services_context *context;
     int i;
     ssize_t size;
     jobject usbDevice;
     uint8_t busNumber, deviceAddress;
     int speed;
     jobject usbDeviceDescriptor;
+    int failed = 0;
 
-    context = (struct usb_services_context*)(*env)->GetIntField(env, obj, usb_services_context_field);
-
-    size = usbw_get_device_list(context->libusb_context, &devices);
+    size = usbw_get_device_list(context, &devices);
+    if(size < 0) {
+        throwPlatformExceptionMsgCode(env, size, "libusb_get_device_list(): %s", usbw_error_to_string(size));
+        return NULL;
+    }
 
     jobjectArray usbDevices = (*env)->NewObjectArray(env, size, libusb1UsbDeviceClass, NULL);
+    if(usbDevices == NULL) {
+          return NULL;
+    }
     for(i = 0; i < size; i++) {
         d = devices[i];
 
@@ -488,7 +524,8 @@ JNIEXPORT jobjectArray JNICALL Java_javalibusb1_libusb1_get_1devices
 
         if(usbw_get_device_descriptor(d, &descriptor)) {
             throwPlatformException(env, "libusb_get_device_descriptor()");
-            goto fail;
+            failed = 1;
+            break;
         }
 
         switch (usbw_get_speed(d)) {
@@ -518,6 +555,9 @@ JNIEXPORT jobjectArray JNICALL Java_javalibusb1_libusb1_get_1devices
             (jbyte) descriptor.iProduct,
             (jbyte) descriptor.iSerialNumber,
             (jbyte) descriptor.bNumConfigurations);
+        if(usbDeviceDescriptor == NULL) {
+            return NULL;
+        }
 
         usbDevice = (*env)->NewObject(env, libusb1UsbDeviceClass,
             libusb1UsbDeviceConstructor,
@@ -526,37 +566,54 @@ JNIEXPORT jobjectArray JNICALL Java_javalibusb1_libusb1_get_1devices
             deviceAddress,
             speed,
             usbDeviceDescriptor);
+        if(usbDevice == NULL) {
+            return NULL;
+        }
+
+        int failed = load_configurations(env, d, descriptor.bNumConfigurations, usbDevice, descriptor);
+        if((*env)->ExceptionCheck(env)) {
+            failed = 1;
+            break;
+        }
+
+        if(failed) {
+            continue;
+        }
 
         (*env)->SetObjectArrayElement(env, usbDevices, i, usbDevice);
         if((*env)->ExceptionCheck(env)) {
-            goto fail;
+            failed = 1;
+            break;
         }
     }
 
-    usbw_free_device_list(devices, 0);
-    return usbDevices;
+    if(failed) {
+        usbw_free_device_list(devices, 1);
+        usbDevices = NULL;
+    }
+    else {
+        usbw_free_device_list(devices, 0);
+    }
 
-fail:
-    usbw_free_device_list(devices, 1);
-    return NULL;
+    return usbDevices;
 }
 
 JNIEXPORT jint JNICALL Java_javalibusb1_libusb1_control_1transfer
-  (JNIEnv *env, jclass klass, jint java_device, jbyte bmRequestType, jbyte bRequest, jshort wValue, jshort wIndex, jlong timeout)
+  (JNIEnv *env, jclass klass, jlong java_device, jbyte bmRequestType, jbyte bRequest, jshort wValue, jshort wIndex, jlong timeout)
 {
     int err;
     struct libusb_device* device;
     struct libusb_device_handle *handle;
 
-    device = (struct libusb_device*)java_device;
+    device = (struct libusb_device*)(POINTER_STORAGE_TYPE)java_device;
 
     if((err = usbw_open(device, &handle))) {
-        throwPlatformExceptionMsgCode(env, "libusb_open()", err);
+        throwPlatformExceptionMsgCode(env, err, "libusb_open(): %s", usbw_error_to_string(err));
         return 0;
     }
 
     if((err = usbw_control_transfer((struct libusb_device_handle*)handle, bmRequestType, bRequest, wValue, wIndex, NULL, 0, timeout)) < 0) {
-        throwPlatformExceptionMsgCode(env, "libusb_control_transfer()", err);
+        throwPlatformExceptionMsgCode(env, err, "libusb_control_transfer(): %s", usbw_error_to_string(err));
     }
 
     usbw_close(handle);
@@ -565,18 +622,19 @@ JNIEXPORT jint JNICALL Java_javalibusb1_libusb1_control_1transfer
 }
 
 JNIEXPORT jint JNICALL Java_javalibusb1_libusb1_bulk_1transfer
-  (JNIEnv *env, jclass klass, jint handle, jbyte bEndpointAddress, jbyteArray java_buffer, jint offset, jint length)
+  (JNIEnv *env, jclass klass, jlong java_handle, jbyte bEndpointAddress, jbyteArray java_buffer, jint offset, jint length)
 {
     jbyte* buffer;
     int transferred;
     int err;
+    struct libusb_device_handle *handle = (struct libusb_device_handle *)(POINTER_STORAGE_TYPE)java_handle;
 
     const int timeout = 0;
 
     buffer = (*env)->GetByteArrayElements(env, java_buffer, NULL);
 
-    if((err = usbw_bulk_transfer((struct libusb_device_handle*)handle, bEndpointAddress, (unsigned char *)buffer + offset, length, &transferred, timeout))) {
-        throwPlatformExceptionMsgCode(env, "libusb_bulk_transfer()", err);
+    if((err = usbw_bulk_transfer(handle, bEndpointAddress, (unsigned char *)buffer + offset, length, &transferred, timeout))) {
+        throwPlatformExceptionMsgCode(env, err, "libusb_bulk_transfer(): %s", usbw_error_to_string(err));
     }
 
     (*env)->ReleaseByteArrayElements(env, java_buffer, buffer, JNI_COMMIT);
@@ -588,24 +646,22 @@ JNIEXPORT jint JNICALL Java_javalibusb1_libusb1_bulk_1transfer
  * javalibusb1_Libusb1UsbDevice
  *****************************************************************************/
 
-JNIEXPORT void JNICALL Java_javalibusb1_Libusb1UsbDevice_closeNative
-    (JNIEnv *env, jobject obj)
+JNIEXPORT void JNICALL Java_javalibusb1_Libusb1UsbDevice_nativeClose
+    (JNIEnv *env, jobject obj, jlong java_device)
 {
     struct libusb_device *device;
 
-    device = (struct libusb_device*)(*env)->GetIntField(env, obj, device_libusb_device_field);
+    device = (struct libusb_device*)(POINTER_STORAGE_TYPE)java_device;
 
     if(device == 0) {
         return;
     }
 
-    (*env)->SetIntField(env, obj, device_libusb_device_field, 0);
-
     usbw_unref_device(device);
 }
 
-JNIEXPORT jstring JNICALL Java_javalibusb1_Libusb1UsbDevice_getStringNative
-  (JNIEnv *env, jobject obj, jbyte index, jint length)
+JNIEXPORT jstring JNICALL Java_javalibusb1_Libusb1UsbDevice_nativeGetString
+  (JNIEnv *env, jobject obj, jlong java_device, jbyte index, jint length)
 {
     struct libusb_device *device;
     struct libusb_device_handle *handle;
@@ -613,7 +669,7 @@ JNIEXPORT jstring JNICALL Java_javalibusb1_Libusb1UsbDevice_getStringNative
     jstring s = NULL;
     int err;
 
-    device = (struct libusb_device*)(*env)->GetIntField(env, obj, device_libusb_device_field);
+    device = (struct libusb_device*)(POINTER_STORAGE_TYPE)java_device;
 
     data = malloc(sizeof(unsigned char) * length);
 
@@ -622,13 +678,15 @@ JNIEXPORT jstring JNICALL Java_javalibusb1_Libusb1UsbDevice_getStringNative
         return s;
     }
 
+    printf("nativeGetString\n");
+
     if((err = usbw_open(device, &handle))) {
-        throwPlatformExceptionMsgCode(env, "libusb_open()", err);
+        throwPlatformExceptionMsgCode(env, err, "libusb_open(): %s", usbw_error_to_string(err));
         goto fail;
     }
 
     if((err = usbw_get_string_descriptor_ascii(handle, index, data, length)) <= 0) {
-        throwPlatformExceptionMsgCode(env, "libusb_get_string_descriptor_ascii()", err);
+        throwPlatformExceptionMsgCode(env, err, "libusb_get_string_descriptor_ascii(): d", err);
         goto fail;
     }
 
@@ -641,7 +699,7 @@ fail:
 
     return s;
 }
-
+/*
 JNIEXPORT jobject JNICALL Java_javalibusb1_Libusb1UsbDevice_nativeGetActiveUsbConfiguration
   (JNIEnv *env, jobject usbDevice)
 {
@@ -651,17 +709,17 @@ JNIEXPORT jobject JNICALL Java_javalibusb1_Libusb1UsbDevice_nativeGetActiveUsbCo
     jobject usbConfiguration;
     int err;
 
-    device = (struct libusb_device*)(*env)->GetIntField(env, usbDevice, device_libusb_device_field);
+    device = (struct libusb_device*)java_device;
 
-    /* On Darwin the device has to be open while querying for the descriptor */
+    // On Darwin the device has to be open while querying for the descriptor
 
     if((err = usbw_open(device, &handle))) {
-        throwPlatformExceptionMsgCode(env, "libusb_open()", err);
+        throwPlatformExceptionMsgCode(env, err, "libusb_open(): %s", usbw_error_to_string(err));
         goto fail;
     }
 
     if((err = usbw_get_active_config_descriptor(device, &config_descriptor))) {
-        throwPlatformExceptionMsgCode(env, "libusb_get_active_config_descriptor()", err);
+        throwPlatformExceptionMsgCode(env, err, "libusb_get_active_config_descriptor(): %s", usbw_error_to_string(err));
         goto fail;
     }
 
@@ -684,22 +742,22 @@ JNIEXPORT jobject JNICALL Java_javalibusb1_Libusb1UsbDevice_nativeGetUsbConfigur
     int config;
     int err;
 
-    device = (struct libusb_device*)(*env)->GetIntField(env, usbDevice, device_libusb_device_field);
+    device = (struct libusb_device*)java_device;
 
-    /* On Darwin the device has to be open while querying for the descriptor */
+    // On Darwin the device has to be open while querying for the descriptor
 
     if((err = usbw_open(device, &handle))) {
-        throwPlatformExceptionMsgCode(env, "libusb_open()", err);
+        throwPlatformExceptionMsgCode(env, err, "libusb_open(): %s", usbw_error_to_string(err));
         goto fail;
     }
 
     if((err = usbw_get_config_descriptor(device, index, &config_descriptor))) {
-        throwPlatformExceptionMsgCode(env, "libusb_get_config_descriptor()", err);
+        throwPlatformExceptionMsgCode(env, err, "libusb_get_config_descriptor(): %s", usbw_error_to_string(err));
         goto fail;
     }
 
     if((err = usbw_get_configuration(handle, &config))) {
-        throwPlatformExceptionMsgCode(env, "libusb_get_configuration()", err);
+        throwPlatformExceptionMsgCode(env, err, "libusb_get_configuration(): %s", usbw_error_to_string(err));
         goto fail;
     }
 
@@ -711,54 +769,57 @@ fail:
 
     return usbConfiguration;
 }
+*/
 
 // -----------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------
 
 JNIEXPORT void JNICALL Java_javalibusb1_Libusb1UsbInterface_nativeSetConfiguration
-  (JNIEnv *env, jobject obj, jint configuration)
+  (JNIEnv *env, jobject obj, jlong java_device, jint configuration)
 {
     struct libusb_device *device;
     struct libusb_device_handle *handle;
     int err;
 
-    device = (struct libusb_device*)(*env)->GetIntField(env, obj, interface_libusb_device_field);
+    device = (struct libusb_device*)(POINTER_STORAGE_TYPE)java_device;
+
+    printf("nativeSetConfiguration\n");
 
     if((err = usbw_open(device, &handle))) {
-        throwPlatformExceptionMsgCode(env, "libusb_open()", err);
+        throwPlatformExceptionMsgCode(env, err, "libusb_open(): %s", usbw_error_to_string(err));
         return;
     }
 
     if((err = usbw_set_configuration(handle, configuration))) {
-        throwPlatformExceptionMsgCode(env, "libusb_set_configuration()", err);
-        goto fail;
+        throwPlatformExceptionMsgCode(env, err, "libusb_set_configuration(): %s", usbw_error_to_string(err));
     };
 
-fail:
     usbw_close(handle);
 }
 
-JNIEXPORT jint JNICALL Java_javalibusb1_Libusb1UsbInterface_nativeClaimInterface
-  (JNIEnv *env, jobject obj, jint bInterfaceNumber)
+JNIEXPORT jlong JNICALL Java_javalibusb1_Libusb1UsbInterface_nativeClaimInterface
+  (JNIEnv *env, jobject obj, jlong java_device, jint bInterfaceNumber)
 {
     struct libusb_device *device;
     struct libusb_device_handle *handle;
     int err;
 
-    device = (struct libusb_device*)(*env)->GetIntField(env, obj, interface_libusb_device_field);
+    device = (struct libusb_device*)(POINTER_STORAGE_TYPE)java_device;
+
+    printf("nativeClaimInterface\n");
 
     if((err = usbw_open(device, &handle))) {
-        throwPlatformExceptionMsgCode(env, "libusb_open()", err);
+        throwPlatformExceptionMsgCode(env, err, "libusb_open(): %s", usbw_error_to_string(err));
         return 0;
     }
 
     if((err = usbw_claim_interface(handle, bInterfaceNumber))) {
-        throwPlatformExceptionMsgCode(env, "libusb_claim_interface()", err);
+        throwPlatformExceptionMsgCode(env, err, "libusb_claim_interface(): %s", usbw_error_to_string(err));
         goto fail;
     };
 
-    return (jint)handle;
+    return (long)handle;
 
 fail:
     usbw_close(handle);
@@ -766,7 +827,7 @@ fail:
 }
 
 JNIEXPORT void JNICALL Java_javalibusb1_Libusb1UsbInterface_nativeRelease
-  (JNIEnv *env, jobject obj, jint handle)
+  (JNIEnv *env, jobject obj, jlong java_handle)
 {
-    usbw_close((struct libusb_device_handle*)handle);
+    usbw_close((struct libusb_device_handle*)((POINTER_STORAGE_TYPE)java_handle));
 }

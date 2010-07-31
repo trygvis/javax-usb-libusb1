@@ -54,11 +54,13 @@ public interface UsbDevice {
 
     UsbPort getParentUsbPort() throws UsbDisconnectedException;
 
-    UsbConfiguration getActiveUsbConfiguration() throws UsbPlatformException;
+    byte getActiveUsbConfigurationNumber();
 
-    boolean containsUsbConfiguration(byte number) throws UsbPlatformException;
+    UsbConfiguration getActiveUsbConfiguration();
+
+    boolean containsUsbConfiguration(byte number);
 
     UsbConfiguration getUsbConfiguration(byte number);
 
-    List<UsbConfiguration> getUsbConfigurations() throws UsbPlatformException;
+    List<UsbConfiguration> getUsbConfigurations();
 }

@@ -5,6 +5,8 @@
 
 void usbw_set_trace_calls(int on);
 
+const char *usbw_error_to_string(enum libusb_error error);
+
 /*************************************************************************
  * Library initialization/deinitialization
  */
@@ -24,10 +26,12 @@ uint8_t usbw_get_device_address(struct libusb_device *device);
 enum libusb_speed usbw_get_speed(struct libusb_device *device);
 void usbw_unref_device(struct libusb_device *device);
 int usbw_open(struct libusb_device *device, struct libusb_device_handle **handle);
+struct libusb_device_handle* usbw_open_device_with_vid_pid(struct libusb_context* context, uint16_t vendor_id, uint16_t product_id);
 void usbw_close(struct libusb_device_handle *handle);
 int usbw_get_configuration(struct libusb_device_handle *handle, int *config);
 int usbw_set_configuration(struct libusb_device_handle *handle, int configuration);
 int usbw_claim_interface(struct libusb_device_handle *device, int interface_number);
+int usbw_reset_device(struct libusb_device_handle *device);
 
 /*************************************************************************
  * USB descriptors
@@ -46,4 +50,5 @@ int usbw_get_string_descriptor_ascii(struct libusb_device_handle *handle, uint8_
 int usbw_control_transfer(struct libusb_device_handle *handle, uint8_t bmRequestType, uint8_t bRequest, uint16_t wValue, uint16_t wIndex, unsigned char *data, uint16_t wLength, unsigned int timeout);
 int usbw_bulk_transfer(struct libusb_device_handle *handle, unsigned char endpoint, unsigned char *data, int length, int *transferred, unsigned int timeout);
 int usbw_interrupt_transfer(struct libusb_device_handle *handle, unsigned char endpoint, unsigned char *data, int length, int *transferred, unsigned int timeout);
+
 #endif

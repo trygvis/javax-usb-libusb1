@@ -10,18 +10,18 @@ extern "C" {
 /*
  * Class:     javalibusb1_Libusb1UsbInterface
  * Method:    nativeSetConfiguration
- * Signature: (I)V
+ * Signature: (JI)V
  */
 JNIEXPORT void JNICALL Java_javalibusb1_Libusb1UsbInterface_nativeSetConfiguration
-  (JNIEnv *, jobject, jint);
+  (JNIEnv *, jobject, jlong, jint);
 
 /*
  * Class:     javalibusb1_Libusb1UsbInterface
  * Method:    nativeClaimInterface
- * Signature: (I)I
+ * Signature: (JI)I
  */
 JNIEXPORT jint JNICALL Java_javalibusb1_Libusb1UsbInterface_nativeClaimInterface
-  (JNIEnv *, jobject, jint);
+  (JNIEnv *, jobject, jlong, jint);
 
 /*
  * Class:     javalibusb1_Libusb1UsbInterface

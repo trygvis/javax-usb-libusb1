@@ -9,35 +9,19 @@ extern "C" {
 #endif
 /*
  * Class:     javalibusb1_Libusb1UsbDevice
- * Method:    closeNative
- * Signature: ()V
+ * Method:    nativeClose
+ * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_javalibusb1_Libusb1UsbDevice_closeNative
-  (JNIEnv *, jobject);
+JNIEXPORT void JNICALL Java_javalibusb1_Libusb1UsbDevice_nativeClose
+  (JNIEnv *, jobject, jlong);
 
 /*
  * Class:     javalibusb1_Libusb1UsbDevice
- * Method:    getStringNative
- * Signature: (BI)Ljava/lang/String;
+ * Method:    nativeGetString
+ * Signature: (JBI)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_javalibusb1_Libusb1UsbDevice_getStringNative
-  (JNIEnv *, jobject, jbyte, jint);
-
-/*
- * Class:     javalibusb1_Libusb1UsbDevice
- * Method:    nativeGetActiveUsbConfiguration
- * Signature: ()Ljavax/usb/UsbConfiguration;
- */
-JNIEXPORT jobject JNICALL Java_javalibusb1_Libusb1UsbDevice_nativeGetActiveUsbConfiguration
-  (JNIEnv *, jobject);
-
-/*
- * Class:     javalibusb1_Libusb1UsbDevice
- * Method:    nativeGetUsbConfiguration
- * Signature: (B)Ljavax/usb/UsbConfiguration;
- */
-JNIEXPORT jobject JNICALL Java_javalibusb1_Libusb1UsbDevice_nativeGetUsbConfiguration
-  (JNIEnv *, jobject, jbyte);
+JNIEXPORT jstring JNICALL Java_javalibusb1_Libusb1UsbDevice_nativeGetString
+  (JNIEnv *, jobject, jlong, jbyte, jint);
 
 #ifdef __cplusplus
 }

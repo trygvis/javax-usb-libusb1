@@ -42,6 +42,12 @@ This is the command used to create and synchronize the upstream CVS repositories
 
 >     git cvsimport -d :pserver:anonymous@javax-usb.cvs.sourceforge.net:/cvsroot/javax-usb javax-usb
 
+### Building 64-Bit Versions
+
+To build a 64-bit version of the libraries and tools add BITS=64 to the make command:
+
+>     make -C javalibusb1 clean all BITS=64^
+
 ### The Firmware
 
 The original firmware images are not used as it's not clear which

@@ -86,8 +86,14 @@ public abstract class AbstractRootUsbHub implements UsbHub {
         return null;
     }
 
+    public byte getActiveUsbConfigurationNumber() {
+        // TODO: Is this the correct value?
+        return getActiveUsbConfiguration().getUsbConfigurationDescriptor().bConfigurationValue();
+    }
+
     public UsbConfiguration getActiveUsbConfiguration() {
-        return null; // TODO: This is not entirely correct
+        throw new RuntimeException("Not implemented");
+//        return null; // TODO: This is not entirely correct
     }
 
     public boolean containsUsbConfiguration(byte number) {
@@ -95,7 +101,8 @@ public abstract class AbstractRootUsbHub implements UsbHub {
     }
 
     public UsbConfiguration getUsbConfiguration(byte number) {
-        return null; // TODO: This is not entirely correct
+        throw new RuntimeException("Not implemented");
+//        return null; // TODO: This is not entirely correct
     }
 
     public List<UsbConfiguration> getUsbConfigurations() {

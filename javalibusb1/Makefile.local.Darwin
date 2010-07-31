@@ -1,3 +1,13 @@
-CCFLAGS += -L/Users/trygvis/opt/libusb-git/lib
-#CCFLAGS += -R/Users/trygvis/opt/libusb-git/lib
-CCFLAGS += -I/Users/trygvis/opt/libusb-git/include/libusb-1.0
+BITS ?= 32
+
+ifeq ($(BITS),64)
+CCFLAGS += -g
+CCFLAGS += -m64
+LDFLAGS += -m64
+BITDIR  = -64
+endif
+
+CCFLAGS += -I/Users/trygvis/opt/libusb-git$(BITDIR)/include/libusb-1.0
+LDFLAGS += -L/Users/trygvis/opt/libusb-git$(BITDIR)/lib
+
+LDFLAGS += -lusb-1.0

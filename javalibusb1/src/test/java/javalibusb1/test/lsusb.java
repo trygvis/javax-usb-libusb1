@@ -1,11 +1,10 @@
 package javalibusb1.test;
 
-import javax.usb.*;
-import javax.usb.util.UsbUtil;
-import java.util.List;
-
 import static javax.usb.util.UsbUtil.*;
-import static javax.usb.util.UsbUtil.toHexString;
+
+import javax.usb.*;
+import javax.usb.util.*;
+import java.util.*;
 
 public class lsusb {
     public static void main(String[] args) throws UsbException {
@@ -53,11 +52,16 @@ public class lsusb {
         byte numConfigurations = usbDevice.getUsbDeviceDescriptor().bNumConfigurations();
 
         for (int i = 0; i < numConfigurations; i++) {
-            UsbConfiguration usbConfiguration = null;
+            UsbConfiguration usbConfiguration;
             try {
-                usbConfiguration = usbDevice.getUsbConfiguration((byte) i);
+                usbConfiguration = usbDevice.getUsbConfiguration((byte) (i + 1));
             } catch (Exception e) {
                 System.out.println(" Configuration #" + i + " - unable to read from device");
+                continue;
+            }
+
+            if (usbConfiguration == null) {
+                System.out.println("Unable to read configuration #" + i + ". This is a violation of the USB spec.");
                 continue;
             }
 
@@ -85,13 +89,13 @@ public class lsusb {
                 System.out.println(String.format("   %-16s %10s %s", "iInterface", unsignedInt(interfaceDescriptor.iInterface()), getString(usbDevice, interfaceDescriptor.iInterface())));
 
                 List<UsbEndpoint> endpoints = usbInterface.getUsbEndpoints();
-                for(int k = 0; k < endpoints.size(); k++){
+                for (int k = 0; k < endpoints.size(); k++) {
                     UsbEndpoint endpoint = endpoints.get(k);
                     UsbEndpointDescriptor endpointDescriptor = endpoint.getUsbEndpointDescriptor();
                     System.out.println("   Endpoint #" + k);
                     System.out.println(String.format("    %-15s %10s", "Direction", endpoint.getDirection() == UsbConst.ENDPOINT_DIRECTION_IN ? "in" : "out"));
                     System.out.println(String.format("    %-15s %10s", "Type", endpoint.getType()));
-                    System.out.println(String.format("    %-15s %9s", "bEndpointAddress", "0x" + toHexString(((byte) endpointDescriptor.bEndpointAddress()))));
+                    System.out.println(String.format("    %-15s %9s", "bEndpointAddress", "0x" + toHexString(endpointDescriptor.bEndpointAddress())));
                     System.out.println(String.format("    %-15s %10s", "bInterval", unsignedInt(endpointDescriptor.bInterval())));
                     System.out.println(String.format("    %-15s %10s", "bmAttributes", endpointDescriptor.bmAttributes()));
                     System.out.println(String.format("    %-15s %10s", "wMaxPacketSize", endpointDescriptor.wMaxPacketSize()));
@@ -101,7 +105,7 @@ public class lsusb {
     }
 
     private static String getString(UsbDevice device, byte index) {
-        if(index == 0) {
+        if (index == 0) {
             return "";
         }
 

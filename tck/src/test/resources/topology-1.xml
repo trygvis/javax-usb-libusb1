@@ -1,0 +1,10 @@
+<topology apiVersion="1.0.3-CVS" usbVersion="1.1">
+  <usbHub usbHub="true" rootUsbHub="true" idVendor="0x6666" idProduct="0000">
+    <devices>
+      <usbDevice idVendor="0x0547" idProduct="0xff01">
+        <speed>High</speed>
+      </usbDevice>
+      <skipDevices/>
+    </devices>
+  </usbHub>
+</topology>

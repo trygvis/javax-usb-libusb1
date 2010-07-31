@@ -1,18 +1,13 @@
 package javalibusb1;
 
+import static javax.usb.UsbConst.*;
+import static javax.usb.UsbHostManager.*;
+
 import javax.usb.*;
 import javax.usb.event.*;
-import javax.usb.impl.AbstractRootUsbHub;
-import javax.usb.impl.DefaultUsbDeviceDescriptor;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
-
-import static javax.usb.UsbConst.HUB_CLASSCODE;
-import static javax.usb.UsbHostManager.JAVAX_USB_PROPERTIES_FILE;
+import javax.usb.impl.*;
+import java.io.*;
+import java.util.*;
 
 public class Libusb1UsbServices implements UsbServices {
 
@@ -34,6 +29,7 @@ public class Libusb1UsbServices implements UsbServices {
         (byte) 1);
 
     private libusb1 libusb;
+    private List<UsbDevice> devices;
 
     public Libusb1UsbServices() throws UsbException {
         libusb = libusb1.create();
@@ -52,7 +48,7 @@ public class Libusb1UsbServices implements UsbServices {
                 trace = Boolean.parseBoolean(properties.getProperty(JAVAX_USB_LIBUSB_TRACE_PROPERTY, "false"));
 
                 String s = properties.getProperty(JAVAX_USB_LIBUSB_DEBUG_PROPERTY);
-                if(s != null) {
+                if (s != null) {
                     debug_level = Integer.parseInt(s);
                 }
             }
@@ -73,7 +69,7 @@ public class Libusb1UsbServices implements UsbServices {
 
         debug_level = Integer.getInteger(JAVAX_USB_LIBUSB_DEBUG_PROPERTY, debug_level);
 
-        if(debug_level != null){
+        if (debug_level != null) {
             libusb.set_debug(debug_level);
         }
     }
@@ -102,10 +98,13 @@ public class Libusb1UsbServices implements UsbServices {
     public void removeUsbServicesListener(UsbServicesListener listener) {
     }
 
-    public UsbHub getRootUsbHub() {
-        List<UsbDevice> devices = Arrays.asList((UsbDevice[]) libusb.get_devices());
+    public synchronized UsbHub getRootUsbHub() {
+        // HOTPLUG
+        if (devices == null) {
+            devices = Arrays.asList(libusb.getDevices());
+        }
 
-        return new LibUsb1RootUsbHub(Collections.unmodifiableList(devices));
+        return new LibUsb1RootUsbHub(devices);
     }
 
     private class LibUsb1RootUsbHub extends AbstractRootUsbHub {

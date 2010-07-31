@@ -26,42 +26,42 @@ JNIEXPORT jobject JNICALL Java_javalibusb1_libusb1_create
 /*
  * Class:     javalibusb1_libusb1
  * Method:    close
- * Signature: ()V
+ * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_javalibusb1_libusb1_close
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jlong);
 
 /*
  * Class:     javalibusb1_libusb1
  * Method:    set_debug
- * Signature: (I)V
+ * Signature: (JI)V
  */
 JNIEXPORT void JNICALL Java_javalibusb1_libusb1_set_1debug
-  (JNIEnv *, jobject, jint);
+  (JNIEnv *, jobject, jlong, jint);
 
 /*
  * Class:     javalibusb1_libusb1
  * Method:    get_devices
- * Signature: ()[Ljavalibusb1/Libusb1UsbDevice;
+ * Signature: (J)[Ljavalibusb1/Libusb1UsbDevice;
  */
 JNIEXPORT jobjectArray JNICALL Java_javalibusb1_libusb1_get_1devices
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jlong);
 
 /*
  * Class:     javalibusb1_libusb1
  * Method:    control_transfer
- * Signature: (IBBSSJ)I
+ * Signature: (JBBSSJ)I
  */
 JNIEXPORT jint JNICALL Java_javalibusb1_libusb1_control_1transfer
-  (JNIEnv *, jclass, jint, jbyte, jbyte, jshort, jshort, jlong);
+  (JNIEnv *, jclass, jlong, jbyte, jbyte, jshort, jshort, jlong);
 
 /*
  * Class:     javalibusb1_libusb1
  * Method:    bulk_transfer
- * Signature: (IB[BII)I
+ * Signature: (JB[BII)I
  */
 JNIEXPORT jint JNICALL Java_javalibusb1_libusb1_bulk_1transfer
-  (JNIEnv *, jclass, jint, jbyte, jbyteArray, jint, jint);
+  (JNIEnv *, jclass, jlong, jbyte, jbyteArray, jint, jint);
 
 #ifdef __cplusplus
 }

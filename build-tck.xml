@@ -12,15 +12,15 @@
   </path>
 
   <path id="test">
+    <pathelement location="tck/src/test/resources"/>
+    <pathelement location="${tck.path}/target/classes"/>
+    <pathelement location="${tck.path}/target/test-classes"/>
+
     <pathelement location="javax.usb/target/classes"/>
     <pathelement location="javax.usb/target/test-classes"/>
 
     <pathelement location="javalibusb1/target/classes"/>
     <pathelement location="javalibusb1/target/test-classes"/>
-
-    <pathelement location="${tck.path}/resources"/>
-    <pathelement location="${tck.path}/target/classes"/>
-    <pathelement location="${tck.path}/target/test-classes"/>
 
     <pathelement location="${maven.repo.local}/junit/junit/3.8.1/junit-3.8.1.jar"/>
     <pathelement location="${maven.repo.local}/com/thoughtworks/xstream/xstream/1.3.1/xstream-1.3.1.jar"/>
@@ -87,12 +87,23 @@
   <target name="prepare-tck" depends="compile">
   </target>
 
-  <target name="tck-1" depends="prepare-tck">
-    <echo>Running TCK Test CONFIG1_TOPOLOGY_B6_IMAGE</echo>
-    <echo>See tck.log for output.</echo>
+  <!--
+  
+  javax.usb.tck.CONFIG3_ISODCP_B6_IMAGE
+  javax.usb.tck.CONFIG3_TOPOLOGY_B6_IMAGE
+  javax.usb.tck.OPT_CONFIG3_ISODCP_ISOCHRONOUS
+  javax.usb.tck.OPT_CONFIG3_TOPOLOGY_SET_CONFIG
+  javax.usb.tck.OPT_CONFIG3_TOPOLOGY_SET_INTERFACE
+  javax.usb.tck.SIGNATURE
+  -->
+
+  <target name="CONFIG1_TOPOLOGY_B6_IMAGE" depends="prepare-tck">
+    <echo>Running TCK Test javax.usb.tck.CONFIG1_TOPOLOGY_B6_IMAGE</echo>
+    <echo>See target/javax.usb.tck.CONFIG1_TOPOLOGY_B6_IMAGE.log for output.</echo>
+    <mkdir dir="target"/>
 
     <!-- This uses the local javax.usb + TCK classes -->
-    <java fork="true" failonerror="true" output="tck.log" classpathref="test"
+    <java fork="true" failonerror="true" output="target/javax.usb.tck.CONFIG1_TOPOLOGY_B6_IMAGE.log" classpathref="test"
           classname="javax.usb.tck.CONFIG1_TOPOLOGY_B6_IMAGE">
       <sysproperty key="javaxusbtck_home" value="${tck.path}"/>
       <sysproperty key="java.library.path" value="javalibusb1/.libs"/>
@@ -100,16 +111,37 @@
       <!-- For Darwin/OS X -->
       <env key="DYLD_LIBRARY_PATH" value="${libusb.lib.path}"/>
     </java>
+  </target>
 
-    <!--
-    javax.usb.tck.CONFIG2_TOPOLOGY_B6_IMAGE
-    javax.usb.tck.CONFIG3_BULKINT_B6_IMAGE
-    javax.usb.tck.CONFIG3_ISODCP_B6_IMAGE
-    javax.usb.tck.CONFIG3_TOPOLOGY_B6_IMAGE
-    javax.usb.tck.OPT_CONFIG3_ISODCP_ISOCHRONOUS
-    javax.usb.tck.OPT_CONFIG3_TOPOLOGY_SET_CONFIG
-    javax.usb.tck.OPT_CONFIG3_TOPOLOGY_SET_INTERFACE
-    javax.usb.tck.SIGNATURE
-    -->
+  <target name="CONFIG2_TOPOLOGY_B6_IMAGE" depends="prepare-tck">
+    <echo>Running TCK Test javax.usb.tck.CONFIG2_TOPOLOGY_B6_IMAGE</echo>
+    <echo>See target/tck-CONFIG2_TOPOLOGY_B6_IMAGE.log for output.</echo>
+    <mkdir dir="target"/>
+
+    <!-- This uses the local javax.usb + TCK classes -->
+    <java fork="true" failonerror="true" output="target/tck-CONFIG2_TOPOLOGY_B6_IMAGE.log" classpathref="test"
+          classname="javax.usb.tck.CONFIG2_TOPOLOGY_B6_IMAGE">
+      <sysproperty key="javaxusbtck_home" value="${tck.path}"/>
+      <sysproperty key="java.library.path" value="javalibusb1/.libs"/>
+      <env key="LD_LIBRARY_PATH" value="${libusb.lib.path}"/>
+      <!-- For Darwin/OS X -->
+      <env key="DYLD_LIBRARY_PATH" value="${libusb.lib.path}"/>
+    </java>
+  </target>
+
+  <target name="CONFIG3_BULKINT_B6_IMAGE" depends="prepare-tck">
+    <echo>Running TCK Test javax.usb.tck.CONFIG3_BULKINT_B6_IMAGE</echo>
+    <echo>See target/javax.usb.tck.CONFIG3_BULKINT_B6_IMAGE for output.</echo>
+    <mkdir dir="target"/>
+
+    <!-- This uses the local javax.usb + TCK classes -->
+    <java fork="true" failonerror="true" output="target/javax.usb.tck.CONFIG3_BULKINT_B6_IMAGE" classpathref="test"
+          classname="javax.usb.tck.CONFIG3_BULKINT_B6_IMAGE">
+      <sysproperty key="javaxusbtck_home" value="${tck.path}"/>
+      <sysproperty key="java.library.path" value="javalibusb1/.libs"/>
+      <env key="LD_LIBRARY_PATH" value="${libusb.lib.path}"/>
+      <!-- For Darwin/OS X -->
+      <env key="DYLD_LIBRARY_PATH" value="${libusb.lib.path}"/>
+    </java>
   </target>
 </project>

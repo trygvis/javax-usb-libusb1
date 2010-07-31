@@ -25,7 +25,7 @@ all: target target/topology.ihx target/bulkint.ihx target/iso.ihx
 
 clean:
 	@echo Cleaning...
-	@rm -f $(wildcard target/*)
+	@rm -f target
 
 target:
 	@mkdir target
