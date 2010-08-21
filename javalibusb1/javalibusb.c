@@ -457,23 +457,23 @@ int load_configurations(JNIEnv *env, struct libusb_device *device, uint8_t bNumC
         return 0;
     }
 
-    int failed = 0;
+    int config;
+    if((err = usbw_get_configuration(handle, &config))) {
+        // This happens on OSX with Apple's IR Receiver which almost always is suspended
+        // fprintf(stderr, "**** get_configuration: could not get descriptor with index %d of %d in total. Skipping device %04x:%04x, err=%s\n", index, bNumConfigurations, descriptor.idVendor, descriptor.idProduct, usbw_error_to_string(err));
+        // fflush(stderr);
+        // throwPlatformExceptionMsgCode(env, err, "libusb_get_configuration(): %s", usbw_error_to_string(err));
+        usbw_close(handle);
+        return 1;
+    }
+
+    (*env)->CallVoidMethod(env, usbDevice, libusb1UsbDeviceSetActiveConfiguration, config);
+
     struct libusb_config_descriptor *config_descriptor = NULL;
     int index;
     for(index = 0; index < bNumConfigurations; index++) {
         if((err = usbw_get_config_descriptor(device, index, &config_descriptor))) {
             throwPlatformExceptionMsgCode(env, err, "libusb_get_config_descriptor(): %s", usbw_error_to_string(err));
-            break;
-        }
-
-        int config;
-        if((err = usbw_get_configuration(handle, &config))) {
-            usbw_free_config_descriptor(config_descriptor);
-            // This happens on OSX with Apple's IR Receiver which almost always is suspended
-            // fprintf(stderr, "**** get_configuration: could not get descriptor with index %d of %d in total. Skipping device %04x:%04x, err=%s\n", index, bNumConfigurations, descriptor.idVendor, descriptor.idProduct, usbw_error_to_string(err));
-            // fflush(stderr);
-            // throwPlatformExceptionMsgCode(env, err, "libusb_get_configuration(): %s", usbw_error_to_string(err));
-            failed = 1;
             break;
         }
 
@@ -488,7 +488,7 @@ int load_configurations(JNIEnv *env, struct libusb_device *device, uint8_t bNumC
 
     usbw_close(handle);
 
-    return failed;
+    return 0;
 }
 
 JNIEXPORT jobjectArray JNICALL Java_javalibusb1_libusb1_get_1devices
@@ -678,8 +678,6 @@ JNIEXPORT jstring JNICALL Java_javalibusb1_Libusb1UsbDevice_nativeGetString
         return s;
     }
 
-    printf("nativeGetString\n");
-
     if((err = usbw_open(device, &handle))) {
         throwPlatformExceptionMsgCode(env, err, "libusb_open(): %s", usbw_error_to_string(err));
         goto fail;
@@ -784,8 +782,6 @@ JNIEXPORT void JNICALL Java_javalibusb1_Libusb1UsbInterface_nativeSetConfigurati
 
     device = (struct libusb_device*)(POINTER_STORAGE_TYPE)java_device;
 
-    printf("nativeSetConfiguration\n");
-
     if((err = usbw_open(device, &handle))) {
         throwPlatformExceptionMsgCode(env, err, "libusb_open(): %s", usbw_error_to_string(err));
         return;
@@ -806,8 +802,6 @@ JNIEXPORT jlong JNICALL Java_javalibusb1_Libusb1UsbInterface_nativeClaimInterfac
     int err;
 
     device = (struct libusb_device*)(POINTER_STORAGE_TYPE)java_device;
-
-    printf("nativeClaimInterface\n");
 
     if((err = usbw_open(device, &handle))) {
         throwPlatformExceptionMsgCode(env, err, "libusb_open(): %s", usbw_error_to_string(err));

@@ -93,8 +93,8 @@ public class Libusb1UsbDevice implements UsbDevice, Closeable {
     public boolean isConfigured() {
         // TODO: figure out how to determine if the device is configured or not.
         // From what I can read from the libusb documentation a device always have to have
-        // a configuration set.
-        return true;
+        // a configuration set, but if configuration '0' is the 'no configuration' configuration.
+        return activeConfiguration > 0;
     }
 
     public boolean isUsbHub() {
@@ -221,11 +221,20 @@ public class Libusb1UsbDevice implements UsbDevice, Closeable {
     // Native Interface
     // -----------------------------------------------------------------------
 
+    /**
+     * Used by the native code
+     */
+    @SuppressWarnings({"UnusedDeclaration"})
     public void _setConfiguration(UsbConfiguration configuration, byte n) {
         configurations[n] = configuration;
     }
 
+    /**
+     * Used by the native code
+     */
+    @SuppressWarnings({"UnusedDeclaration"})
     public void _setActiveConfiguration(byte n) {
+        System.out.println("Libusb1UsbDevice._setActiveConfiguration: n=" + n);
         activeConfiguration = n;
     }
 
@@ -238,12 +247,4 @@ public class Libusb1UsbDevice implements UsbDevice, Closeable {
     native
     private String nativeGetString(long device, byte index, int length)
         throws UsbPlatformException;
-
-//    native
-//    private UsbConfiguration nativeGetActiveUsbConfiguration()
-//        throws UsbPlatformException;
-
-//    native
-//    private UsbConfiguration nativeGetUsbConfiguration(byte number)
-//        throws UsbPlatformException;
 }

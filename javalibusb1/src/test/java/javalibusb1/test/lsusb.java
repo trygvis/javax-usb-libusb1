@@ -35,11 +35,12 @@ public class lsusb {
     private static void dump(UsbDevice usbDevice) {
         UsbDeviceDescriptor descriptor = usbDevice.getUsbDeviceDescriptor();
 
+        System.out.println(String.format(" %-18s %10s", "Configured:", usbDevice.isConfigured()));
         System.out.println(String.format(" %-18s %10s", "bdcUSB", twoDigitBdc(descriptor.bcdUSB())));
-        System.out.println(String.format(" %-18s %10s", "bDeviceClass: ", descriptor.bDeviceClass()));
-        System.out.println(String.format(" %-18s %10s", "bDeviceSubClass", descriptor.bDeviceSubClass()));
-        System.out.println(String.format(" %-18s %10s", "bDeviceProtocol", descriptor.bDeviceProtocol()));
-        System.out.println(String.format(" %-18s %10s", "bMaxPacketSize", descriptor.bMaxPacketSize0()));
+        System.out.println(String.format(" %-18s %10s", "bDeviceClass: ", unsignedInt(descriptor.bDeviceClass())));
+        System.out.println(String.format(" %-18s %10s", "bDeviceSubClass", unsignedInt(descriptor.bDeviceSubClass())));
+        System.out.println(String.format(" %-18s %10s", "bDeviceProtocol", unsignedInt(descriptor.bDeviceProtocol())));
+        System.out.println(String.format(" %-18s %10s", "bMaxPacketSize", unsignedInt(descriptor.bMaxPacketSize0())));
         System.out.println(String.format(" %-18s %10s", "idVendor", toHexString(descriptor.idVendor())));
         System.out.println(String.format(" %-18s %10s", "idProduct", toHexString(descriptor.idProduct())));
         System.out.println(String.format(" %-18s %10s", "bcdDevice", twoDigitBdc(descriptor.bcdDevice())));
@@ -67,6 +68,7 @@ public class lsusb {
 
             UsbConfigurationDescriptor configurationDescriptor = usbConfiguration.getUsbConfigurationDescriptor();
             System.out.println(" Configuration #" + i);
+            System.out.println(String.format("  %-17s %8s", "Active", usbConfiguration.isActive()));
             System.out.println(String.format("  %-17s %8s", "bConfigurationValue", configurationDescriptor.bConfigurationValue()));
             System.out.println(String.format("  %-17s %10s", "bmAttributes", "0x" + toHexString(configurationDescriptor.bmAttributes())));
             System.out.println(String.format("  %-17s %10s", "bMaxPower", configurationDescriptor.bMaxPower()));

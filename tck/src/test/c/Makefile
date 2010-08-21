@@ -1,7 +1,8 @@
 CC=sdcc
 CPP=sdcpp
 CPP=cpp
-AS=asx8051
+# Include "AS=sdas8051" in your Makefile.local if this is not found
+AS?=asx8051
 
 include Makefile.local
 
@@ -25,7 +26,7 @@ all: target target/topology.ihx target/bulkint.ihx target/iso.ihx
 
 clean:
 	@echo Cleaning...
-	@rm -f target
+	@rm -rf target
 
 target:
 	@mkdir target
@@ -78,4 +79,4 @@ target/dscr.iso.asm: dscr.asm
 
 target/%.ihx: target/main.rel target/dscr.%.rel
 	@echo LD $@
-	$(CC) $(SDCCFLAGS) -Wl"-b INT2JT = 0x1A00" -Wl"-b DSCR_AREA=0x3e00" -o $@ $^ fx2.lib -L$(FX2LIBDIR)/lib 
+	$(CC) $(SDCCFLAGS) -Wl"-b INT2JT = 0x1A00" -Wl"-b DSCR_AREA=0x3e00" -o $@ $^ fx2.lib -L$(FX2LIBDIR)/lib
