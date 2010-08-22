@@ -16,43 +16,23 @@ volatile __bit got_sud;
 __xdata char *dest=(__xdata char*)BUFFER_START;
 __xdata char *BUFFER_END=(__xdata char*)BUFFER_START + 0x200;
 
-BOOL handle_set_interface(BYTE ifc, BYTE alt_ifc);
+// TODO: These (or some defines like it) should go into fx2lib
+#define EPCFG_DIRECTION_IN  bmBIT6
+#define EPCFG_DIRECTION_OUT 0
+#define EPCFG_TYPE_ISO      bmBIT4
+#define EPCFG_TYPE_BULK     bmBIT5
+#define EPCFG_TYPE_INT      bmBIT5 | bmBIT4
+#define EPCFG_BUFFER_QUAD   0
+#define EPCFG_BUFFER_DOUBLE bmBIT1
+#define EPCFG_BUFFER_TRIPLE bmBIT3 | bmBIT2
 
 void hello_n(BYTE i) {
-/*
-    IOA = IOA | (1 << i);
-    IOA = IOA & ~(1 << i);
-*/
 }
 
 void hello() {
-/*
-    IOA = 0xff;
-    IOA = 0x00;
-*/
 }
 
 void log(const char* src) {
-    const char* separator = "-";
-
-/*
-    // Check for buffer overflow.
-    // TODO: Figure out how much to buffer
-    if(dest > BUFFER_END)
-    {
-        return;
-    }
-
-    while(*src)
-    {
-        *dest++ = *src++;
-    }
-
-    while(*separator)
-    {
-        *dest++ = *separator++;
-    }
-*/
 }
 
 void main(void)
@@ -88,7 +68,9 @@ void main(void)
 
     // Endpoint 2
     // valid=1, direction=0 out, type=10 bulk, size=0 (512), reserved=0, buffering=10 (double)
-    EP2CFG = 0xA2; // 10100010
+//    EP2CFG = 0xA2; // 10100010
+    // The device refuses to enumerate with buffering=triple or quad
+    EP2CFG = bmVALID + EPCFG_DIRECTION_OUT + EPCFG_TYPE_BULK + EPCFG_BUFFER_DOUBLE;
     SYNCDELAY();
 
     // Endpoint 4
@@ -141,15 +123,15 @@ void main(void)
         count = MAKEWORD(EP2BCH, EP2BCL);
 
         for(i = 0; i < count; i++) {
-            EP6FIFOBUF[i] = EP2FIFOBUF[i] + 1;
+            EP6FIFOBUF[i] = EP2FIFOBUF[i];
         }
 
-        EP6BCH = 0;
+        EP6BCH = EP2BCH;
         SYNCDELAY();
         EP6BCL = EP2BCL; // Arms EP6
         SYNCDELAY();
 
-        EP2BCL=0; // Arms EP2
+        EP2BCL=0x80; // Arms EP2
         SYNCDELAY();
     }
 }
