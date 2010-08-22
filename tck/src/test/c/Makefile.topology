@@ -1,9 +1,0 @@
-BASENAME = topology
-SOURCES=main.c
-A51_SOURCES=dscr.topology.asm
-PID=0x1004
-
-include Makefile.local
-include $(FX2LIBDIR)/lib/fx2.mk
-
-INT2JT=

@@ -100,7 +100,6 @@ To load the firmware:
 
         $ make program-topology
         make topology
-        make -f Makefile.topology
         make[2]: Nothing to be done for `ihx'.
         cycfx2prog  prg:build/topology.ihx run
         Using ID 04b4:8613 on 038.002.
