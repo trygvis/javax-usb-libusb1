@@ -141,9 +141,9 @@ int usbw_open(struct libusb_device *device, struct libusb_device_handle **handle
 }
 
 struct libusb_device_handle* usbw_open_device_with_vid_pid(struct libusb_context* context, uint16_t vendor_id, uint16_t product_id) {
-    usbw_printf("PRE: %s(%p, 0x%0hx, 0x%0hx)\n", __func__, context, vendor_id, product_id);
+    usbw_printf("PRE: %s(%p, 0x%04hx, 0x%04hx)\n", __func__, context, vendor_id, product_id);
     struct libusb_device_handle* handle = libusb_open_device_with_vid_pid(context, vendor_id, product_id);
-    usbw_printf("RET: %s: %s: handle=%p\n", __func__, handle);
+    usbw_printf("RET: %s: handle=%p\n", __func__, handle);
     return handle;
 }
 
@@ -231,7 +231,7 @@ int usbw_control_transfer(struct libusb_device_handle *handle, uint8_t bmRequest
 }
 
 int usbw_bulk_transfer(struct libusb_device_handle *handle, unsigned char endpoint, unsigned char *data, int length, int *transferred, unsigned int timeout) {
-    usbw_printf("PRE: %s(%p, %u, %p, %d, %p, %u)\n", __func__, handle, endpoint, data, length, transferred, timeout);
+    usbw_printf("PRE: %s(%p, 0x%02x, %p, %d, %p, %u)\n", __func__, handle, endpoint, data, length, transferred, timeout);
     int err = libusb_bulk_transfer(handle, endpoint, data, length, transferred, timeout);
     usbw_printf("RET: %s: err=%d (%s)\n", __func__, err, usbw_error_to_string(err));
     return err;
