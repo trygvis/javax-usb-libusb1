@@ -41,6 +41,7 @@ struct configuration_descriptor {
     BYTE iConfiguration;
     BYTE bmAttributes;
     BYTE bMaxPower;
+    BYTE __padding; // Descriptors has to be on an even boundary
 };
 
 struct interface_descriptor {
@@ -64,10 +65,12 @@ struct endpoint_descriptor {
     BYTE bInterval;
 };
 
+/*
 struct usb_string {
     BYTE bLength;
     BYTE bDescriptorType;
-    const char bString[100];
+    char* bString;
 };
+*/
 
 #endif

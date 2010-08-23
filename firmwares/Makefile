@@ -27,7 +27,7 @@ firmwares=echo
 # Dependencies
 #
 
-target/echo.ihx: target/echo-dscr.rel
+target/echo.ihx: target/echo-descriptor.rel target/echo-dscr.rel
 
 #
 # Targets
