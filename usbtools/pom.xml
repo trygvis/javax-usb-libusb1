@@ -29,19 +29,57 @@
         <groupId>org.freehep</groupId>
         <artifactId>freehep-nar-plugin</artifactId>
         <extensions>true</extensions>
-<!--
         <executions>
           <execution>
             <goals>
-              <goal>nar-download</goal>
-              <goal>nar-unpack</goal>
+              <goal>nar-assembly</goal>
             </goals>
             <configuration>
-              <ignore>true</ignore>
+              <classifiers>
+                <classifier>i386-MacOSX-g++-jni</classifier>
+              </classifiers>
             </configuration>
           </execution>
         </executions>
--->
+      </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.2-beta-5</version>
+        <executions>
+          <execution>
+            <phase>integration-test</phase>
+            <goals>
+              <goal>single</goal>
+              <goal>directory-single</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <descriptors>
+            <descriptor>src/main/assembly/i386-MacOSX-g++.xml</descriptor>
+          </descriptors>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>appassembler-maven-plugin</artifactId>
+        <version>1.0</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>assemble</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <extraJvmArguments>-Djava.library.path="$BASEDIR"/lib</extraJvmArguments>
+          <programs>
+            <program>
+              <name>lsusb</name>
+              <mainClass>no.hackaton.usbtools.lsusb</mainClass>
+            </program>
+          </programs>
+        </configuration>
       </plugin>
     </plugins>
   </build>
