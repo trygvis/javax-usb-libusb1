@@ -1,4 +1,4 @@
-package javalibusb1.test;
+package no.hackaton.usbtools;
 
 import static javax.usb.util.UsbUtil.*;
 

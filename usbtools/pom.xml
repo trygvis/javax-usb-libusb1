@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>no.hackaton</groupId>
+    <artifactId>javax-usb-libusb1</artifactId>
+    <version>1.0.1-1-SNAPSHOT</version>
+  </parent>
+  <artifactId>usbtools</artifactId>
+  <packaging>nar</packaging>
+  <dependencies>
+    <dependency>
+      <groupId>no.hackaton</groupId>
+      <artifactId>javalibusb1</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.freehep</groupId>
+        <artifactId>freehep-nar-plugin</artifactId>
+        <extensions>true</extensions>
+<!--
+        <executions>
+          <execution>
+            <goals>
+              <goal>nar-download</goal>
+              <goal>nar-unpack</goal>
+            </goals>
+            <configuration>
+              <ignore>true</ignore>
+            </configuration>
+          </execution>
+        </executions>
+-->
+      </plugin>
+    </plugins>
+  </build>
+</project>

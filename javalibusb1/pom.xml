@@ -8,9 +8,8 @@
     <artifactId>javax-usb-libusb1</artifactId>
     <version>1.0.1-1-SNAPSHOT</version>
   </parent>
-
   <artifactId>javalibusb1</artifactId>
-
+  <packaging>nar</packaging>
   <dependencies>
     <dependency>
       <groupId>no.hackaton</groupId>
@@ -18,63 +17,71 @@
       <version>${project.version}</version>
     </dependency>
   </dependencies>
-
+  <profiles>
+    <profile>
+      <id>default-properties</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <includePath.libusb>/opt/local/include/libusb-1.0</includePath.libusb>
+        <libDirectory.libusb>/opt/local/include/libusb-1.0</libDirectory.libusb>
+      </properties>
+    </profile>
+    <profile>
+      <id>algos</id>
+      <activation>
+        <property>
+          <name>user.home</name>
+          <value>/Users/trygvis</value>
+        </property>
+      </activation>
+      <properties>
+        <includePath.libusb>${user.home}/opt/libusb-git/include/libusb-1.0</includePath.libusb>
+        <libDirectory.libusb>${user.home}/opt/libusb-git/lib</libDirectory.libusb>
+      </properties>
+    </profile>
+  </profiles>
   <build>
     <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.0.1</version>
-        <executions>
-          <execution>
-            <id>clean</id>
-            <phase>clean</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>make</executable>
-              <arguments>
-                <argument>clean</argument>
-              </arguments>
-            </configuration>
-          </execution>
-          <execution>
-            <id>compile</id>
-            <phase>compile</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>make</executable>
-              <arguments>
-                <argument>all</argument>
-              </arguments>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.5</version>
-        <executions>
-          <execution>
-            <id>attach-artifact</id>
-            <phase>process-sources</phase>
-            <goals>
-              <goal>attach-artifact</goal>
-            </goals>
-            <configuration>
-              <artifacts>
-                <artifact>
-                  <file>.libs/libjavalibusb1.jnilib</file>
-                  <type>jnilib</type>
-                </artifact>
-              </artifacts>
-            </configuration>
-          </execution>
-        </executions>
+        <groupId>org.freehep</groupId>
+        <artifactId>freehep-nar-plugin</artifactId>
+        <extensions>true</extensions>
+        <configuration>
+          <libraries>
+            <library>
+              <type>jni</type>
+              <linkCPP>false</linkCPP>
+              <narSystemPackage>javalibusb1</narSystemPackage>
+            </library>
+          </libraries>
+          <c>
+            <!--
+            This is a copy of i386.MacOSX.g++.cpp.options without -Wconversion.
+            For some reason -Wconversion adds a lot of warnings from libusb.
+            -->
+            <options>
+              <options>-Wall</options>
+              <options>-Wno-long-long</options>
+              <options>-Wpointer-arith</options>
+              <options>-fPIC</options>
+            </options>
+            <clearDefaultOptions>true</clearDefaultOptions>
+            <includePaths>
+              <includePath>${includePath.libusb}</includePath>
+              <includePath>src/main/include</includePath>
+            </includePaths>
+          </c>
+          <linker>
+            <libs>
+              <lib>
+                <name>usb-1.0</name>
+                <directory>${libDirectory.libusb}</directory>
+              </lib>
+            </libs>
+          </linker>
+        </configuration>
       </plugin>
     </plugins>
   </build>

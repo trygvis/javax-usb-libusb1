@@ -58,10 +58,10 @@ test: libjavalibusb1.$(SHREXT)
 	$(JAVA_HOME)/bin/java -classpath $(CLASSPATH) -Xcheck:jni -Djava.library.path=.:.libs $(JVM_ARGS) javalibusb1.test.JUsbTest
 
 lsusb: libjavalibusb1.$(SHREXT)
-	$(JAVA_HOME)/bin/java -classpath $(CLASSPATH) -Xcheck:jni -Djava.library.path=.:.libs $(JVM_ARGS) javalibusb1.test.lsusb
+	$(JAVA_HOME)/bin/java -classpath $(CLASSPATH) -Xcheck:jni -Djava.library.path=.:.libs $(JVM_ARGS) no.hackaton.usbtools.lsusb
 
 ReadSerial: libjavalibusb1.$(SHREXT)
-	$(JAVA_HOME)/bin/java -classpath $(CLASSPATH) -Xcheck:jni -Djava.library.path=.:.libs $(JVM_ARGS) javalibusb1.test.ReadSerial
+	$(JAVA_HOME)/bin/java -classpath $(CLASSPATH) -Xcheck:jni -Djava.library.path=.:.libs $(JVM_ARGS) no.hackaton.usbtools.ReadSerial
 
 usb_get_config_descriptor: usb_get_config_descriptor.o usbw.o
 usb_open_twice: usb_open_twice.o usbw.o

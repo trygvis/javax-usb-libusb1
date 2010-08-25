@@ -68,6 +68,7 @@ class libusb1 implements Closeable {
     public static int bulk_transfer(long libusb_device_handle, byte bEndpointAddress, byte[] buffer, int offest, int length);
 
     static {
-        System.loadLibrary("javalibusb1");
+//        System.loadLibrary("javalibusb1");
+        NarSystem.loadLibrary();
     }
 }
