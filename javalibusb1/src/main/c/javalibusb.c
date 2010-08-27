@@ -13,9 +13,6 @@
 #define POINTER_STORAGE_TYPE int
 #endif
 
-/* javalibusb1.libusb1 */
-jfieldID libusb_context_field;
-
 /* javalibusb1.Libusb1UsbDevice */
 jclass libusb1UsbDeviceClass = NULL;
 jmethodID libusb1UsbDeviceConstructor = NULL;
@@ -492,9 +489,9 @@ int load_configurations(JNIEnv *env, struct libusb_device *device, uint8_t bNumC
 }
 
 JNIEXPORT jobjectArray JNICALL Java_javalibusb1_libusb1_get_1devices
-    (JNIEnv *env, jobject obj, jlong java_context)
+    (JNIEnv *env, jobject obj, jlong libusb_context_ptr)
 {
-    struct libusb_context *context = (struct libusb_context *)(POINTER_STORAGE_TYPE)java_context;
+    struct libusb_context *context = (struct libusb_context *)(POINTER_STORAGE_TYPE)libusb_context_ptr;
     struct libusb_device **devices;
     struct libusb_device *d;
     struct libusb_device_descriptor descriptor;
@@ -599,7 +596,7 @@ JNIEXPORT jobjectArray JNICALL Java_javalibusb1_libusb1_get_1devices
 }
 
 JNIEXPORT jint JNICALL Java_javalibusb1_libusb1_control_1transfer
-  (JNIEnv *env, jclass klass, jlong java_device, jbyte bmRequestType, jbyte bRequest, jshort wValue, jshort wIndex, jlong timeout, jbyteArray bytes, jint offset, jshort length)
+  (JNIEnv *env, jclass klass, jlong libusb_device_ptr, jbyte bmRequestType, jbyte bRequest, jshort wValue, jshort wIndex, jlong timeout, jbyteArray bytes, jint offset, jshort length)
 {
     int err;
     struct libusb_device* device;
@@ -607,9 +604,7 @@ JNIEXPORT jint JNICALL Java_javalibusb1_libusb1_control_1transfer
     uint8_t* data = NULL;
     uint16_t wLength;
 
-    device = (struct libusb_device*)(POINTER_STORAGE_TYPE)java_device;
-    fprintf(stderr, "java_device=%u\n", (POINTER_STORAGE_TYPE)java_device);
-    fprintf(stderr, "device=%p\n", device);
+    device = (struct libusb_device*)(POINTER_STORAGE_TYPE)libusb_device_ptr;
 
     data = malloc(length);
     if(data == NULL) {
@@ -656,12 +651,12 @@ fail:
 }
 
 JNIEXPORT jint JNICALL Java_javalibusb1_libusb1_bulk_1transfer
-  (JNIEnv *env, jclass klass, jlong java_handle, jbyte bEndpointAddress, jbyteArray java_buffer, jint offset, jint length)
+  (JNIEnv *env, jclass klass, jlong libusb_device_handle_ptr, jbyte bEndpointAddress, jbyteArray java_buffer, jint offset, jint length)
 {
     jbyte* buffer;
     int transferred;
     int err;
-    struct libusb_device_handle *handle = (struct libusb_device_handle *)(POINTER_STORAGE_TYPE)java_handle;
+    struct libusb_device_handle *handle = (struct libusb_device_handle *)(POINTER_STORAGE_TYPE)libusb_device_handle_ptr;
 
     const int timeout = 0;
 
@@ -681,11 +676,11 @@ JNIEXPORT jint JNICALL Java_javalibusb1_libusb1_bulk_1transfer
  *****************************************************************************/
 
 JNIEXPORT void JNICALL Java_javalibusb1_Libusb1UsbDevice_nativeClose
-    (JNIEnv *env, jobject obj, jlong java_device)
+    (JNIEnv *env, jobject obj, jlong libusb_device_ptr)
 {
     struct libusb_device *device;
 
-    device = (struct libusb_device*)(POINTER_STORAGE_TYPE)java_device;
+    device = (struct libusb_device*)(POINTER_STORAGE_TYPE)libusb_device_ptr;
 
     if(device == 0) {
         return;
@@ -695,7 +690,7 @@ JNIEXPORT void JNICALL Java_javalibusb1_Libusb1UsbDevice_nativeClose
 }
 
 JNIEXPORT jstring JNICALL Java_javalibusb1_Libusb1UsbDevice_nativeGetString
-  (JNIEnv *env, jobject obj, jlong java_device, jbyte index, jint length)
+  (JNIEnv *env, jobject obj, jlong libusb_device_ptr, jbyte index, jint length)
 {
     struct libusb_device *device;
     struct libusb_device_handle *handle;
@@ -703,7 +698,7 @@ JNIEXPORT jstring JNICALL Java_javalibusb1_Libusb1UsbDevice_nativeGetString
     jstring s = NULL;
     int err;
 
-    device = (struct libusb_device*)(POINTER_STORAGE_TYPE)java_device;
+    device = (struct libusb_device*)(POINTER_STORAGE_TYPE)libusb_device_ptr;
 
     data = malloc(sizeof(unsigned char) * length);
 
@@ -731,90 +726,20 @@ fail:
 
     return s;
 }
-/*
-JNIEXPORT jobject JNICALL Java_javalibusb1_Libusb1UsbDevice_nativeGetActiveUsbConfiguration
-  (JNIEnv *env, jobject usbDevice)
-{
-    struct libusb_device *device;
-    struct libusb_device_handle *handle;
-    struct libusb_config_descriptor *config_descriptor = NULL;
-    jobject usbConfiguration;
-    int err;
 
-    device = (struct libusb_device*)java_device;
 
-    // On Darwin the device has to be open while querying for the descriptor
-
-    if((err = usbw_open(device, &handle))) {
-        throwPlatformExceptionMsgCode(env, err, "libusb_open(): %s", usbw_error_to_string(err));
-        goto fail;
-    }
-
-    if((err = usbw_get_active_config_descriptor(device, &config_descriptor))) {
-        throwPlatformExceptionMsgCode(env, err, "libusb_get_active_config_descriptor(): %s", usbw_error_to_string(err));
-        goto fail;
-    }
-
-    usbConfiguration = config_descriptor2usbConfiguration(env, usbDevice, config_descriptor, JNI_TRUE, 0);
-
-fail:
-    usbw_close(handle);
-    usbw_free_config_descriptor(config_descriptor);
-
-    return usbConfiguration;
-}
-
-JNIEXPORT jobject JNICALL Java_javalibusb1_Libusb1UsbDevice_nativeGetUsbConfiguration
-  (JNIEnv *env, jobject usbDevice, jbyte index)
-{
-    struct libusb_device *device;
-    struct libusb_device_handle *handle = NULL;
-    struct libusb_config_descriptor *config_descriptor = NULL;
-    jobject usbConfiguration;
-    int config;
-    int err;
-
-    device = (struct libusb_device*)java_device;
-
-    // On Darwin the device has to be open while querying for the descriptor
-
-    if((err = usbw_open(device, &handle))) {
-        throwPlatformExceptionMsgCode(env, err, "libusb_open(): %s", usbw_error_to_string(err));
-        goto fail;
-    }
-
-    if((err = usbw_get_config_descriptor(device, index, &config_descriptor))) {
-        throwPlatformExceptionMsgCode(env, err, "libusb_get_config_descriptor(): %s", usbw_error_to_string(err));
-        goto fail;
-    }
-
-    if((err = usbw_get_configuration(handle, &config))) {
-        throwPlatformExceptionMsgCode(env, err, "libusb_get_configuration(): %s", usbw_error_to_string(err));
-        goto fail;
-    }
-
-    usbConfiguration = config_descriptor2usbConfiguration(env, usbDevice, config_descriptor, JNI_FALSE, config);
-
-fail:
-    usbw_close(handle);
-    usbw_free_config_descriptor(config_descriptor);
-
-    return usbConfiguration;
-}
-*/
-
-// -----------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------
+/*****************************************************************************
+ * javalibusb1.Libusb1UsbInterface
+ *****************************************************************************/
 
 JNIEXPORT void JNICALL Java_javalibusb1_Libusb1UsbInterface_nativeSetConfiguration
-  (JNIEnv *env, jobject obj, jlong java_device, jint configuration)
+  (JNIEnv *env, jobject obj, jlong libusb_device_ptr, jint configuration)
 {
     struct libusb_device *device;
     struct libusb_device_handle *handle;
     int err;
 
-    device = (struct libusb_device*)(POINTER_STORAGE_TYPE)java_device;
+    device = (struct libusb_device*)(POINTER_STORAGE_TYPE)libusb_device_ptr;
 
     if((err = usbw_open(device, &handle))) {
         throwPlatformExceptionMsgCode(env, err, "libusb_open(): %s", usbw_error_to_string(err));
@@ -829,13 +754,13 @@ JNIEXPORT void JNICALL Java_javalibusb1_Libusb1UsbInterface_nativeSetConfigurati
 }
 
 JNIEXPORT jlong JNICALL Java_javalibusb1_Libusb1UsbInterface_nativeClaimInterface
-  (JNIEnv *env, jobject obj, jlong java_device, jint bInterfaceNumber)
+  (JNIEnv *env, jobject obj, jlong libusb_device_ptr, jint bInterfaceNumber)
 {
     struct libusb_device *device;
     struct libusb_device_handle *handle;
     int err;
 
-    device = (struct libusb_device*)(POINTER_STORAGE_TYPE)java_device;
+    device = (struct libusb_device*)(POINTER_STORAGE_TYPE)libusb_device_ptr;
 
     if((err = usbw_open(device, &handle))) {
         throwPlatformExceptionMsgCode(env, err, "libusb_open(): %s", usbw_error_to_string(err));
@@ -855,7 +780,7 @@ fail:
 }
 
 JNIEXPORT void JNICALL Java_javalibusb1_Libusb1UsbInterface_nativeRelease
-  (JNIEnv *env, jobject obj, jlong java_handle)
+  (JNIEnv *env, jobject obj, jlong libusb_device_handle_ptr)
 {
-    usbw_close((struct libusb_device_handle*)((POINTER_STORAGE_TYPE)java_handle));
+    usbw_close((struct libusb_device_handle*)((POINTER_STORAGE_TYPE)libusb_device_handle_ptr));
 }

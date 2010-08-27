@@ -1,5 +1,7 @@
 package javalibusb1;
 
+import static javalibusb1.Libusb1UsbControlIrp.createControlIrp;
+
 import javax.usb.*;
 import javax.usb.event.*;
 import javax.usb.util.*;
@@ -16,7 +18,7 @@ public class Libusb1UsbDevice implements UsbDevice, Closeable {
      * Used by the native code
      */
     @SuppressWarnings({"FieldCanBeLocal", "UnusedDeclaration"})
-    final long libusb_device;
+    final long libusb_device_ptr;
     public final byte busNumber;
     public final byte deviceAddress;
     public final Object speed;
@@ -32,8 +34,8 @@ public class Libusb1UsbDevice implements UsbDevice, Closeable {
 
     private boolean closed;
 
-    public Libusb1UsbDevice(int libusb_device_, byte busNumber, byte deviceAddress, int speed, UsbDeviceDescriptor usbDeviceDescriptor) {
-        this.libusb_device = libusb_device_;
+    public Libusb1UsbDevice(int libusb_device_ptr, byte busNumber, byte deviceAddress, int speed, UsbDeviceDescriptor usbDeviceDescriptor) {
+        this.libusb_device_ptr = libusb_device_ptr;
         this.busNumber = busNumber;
         this.deviceAddress = deviceAddress;
         switch (speed) {
@@ -69,8 +71,7 @@ public class Libusb1UsbDevice implements UsbDevice, Closeable {
     }
 
     public String getString(byte index) throws UsbException {
-        System.out.println("libusb_device = " + Long.toHexString(libusb_device));
-        String s = nativeGetString(libusb_device, index, 1024);
+        String s = nativeGetString(libusb_device_ptr, index, 1024);
 
         // It would be nice to have a way to know if the device had disconnected here and
         // throw a UsbDisconnectedException() instead.
@@ -126,7 +127,7 @@ public class Libusb1UsbDevice implements UsbDevice, Closeable {
     }
 
     public void syncSubmit(UsbControlIrp irp) throws UsbException {
-        internalSyncSubmit(irp);
+        internalSyncSubmitControl(libusb_device_ptr, createControlIrp(irp));
     }
 
     public UsbPort getParentUsbPort() throws UsbDisconnectedException {
@@ -189,7 +190,7 @@ public class Libusb1UsbDevice implements UsbDevice, Closeable {
 
     public synchronized void close() throws IOException {
         closed = true;
-        nativeClose(libusb_device);
+        nativeClose(libusb_device_ptr);
     }
 
     @Override
@@ -199,30 +200,12 @@ public class Libusb1UsbDevice implements UsbDevice, Closeable {
         }
     }
 
-    private void internalSyncSubmit(UsbControlIrp irp) throws UsbException {
-        if (irp == null) {
-            throw new IllegalArgumentException("irp");
-        }
-
-        // TODO: check if this is active
-
-        if (irp.getUsbException() != null) {
-            throw new IllegalArgumentException("usbException is not null");
-        }
-
-        if (irp.isComplete()) {
-            throw new IllegalArgumentException("complete == true");
-        }
-
-        if(irp.getLength() >= 65536) {
-            throw new IllegalArgumentException("irp.length > 64k");
-        }
-
+    public static void internalSyncSubmitControl(long libusb_device_ptr, Libusb1UsbControlIrp irp) throws UsbException {
         long timeout = 1000;
 
         int transferred = 0;
         try {
-            transferred = libusb1.control_transfer(libusb_device,
+            transferred = libusb1.control_transfer(libusb_device_ptr,
                 irp.bmRequestType(), irp.bRequest(), irp.wValue(), irp.wIndex(), timeout,
                 irp.getData(), irp.getOffset(), (short)irp.getLength());
         } catch (UsbException e) {

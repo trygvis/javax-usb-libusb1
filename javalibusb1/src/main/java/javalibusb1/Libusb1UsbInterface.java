@@ -8,25 +8,26 @@ import java.util.List;
 
 public class Libusb1UsbInterface implements UsbInterface {
 
+    public final Libusb1UsbDevice device;
     public final Libusb1UsbConfiguration configuration;
     public final UsbInterfaceDescriptor descriptor;
     public final UsbEndpoint endpointZero;
     public final UsbEndpoint[] endpoints;
     private boolean active;
-    @SuppressWarnings({"FieldCanBeLocal", "UnusedDeclaration"})
-    private final long libusb_device;
 
-    // Hey you, don't touch me!
-    int libusb_handle;
+    /**
+     * This holds the value of the <code>struct libusb_device_handle*</code> if this interface is claimed.
+     */
+    long libusb_device_handle_ptr;
     private static final UsbEndpointDescriptor ENDPOINT_ZERO_DESCRIPTOR = new DefaultUsbEndpointDescriptor((byte)0, (byte)0, (byte)0, (byte)0);
 
     public Libusb1UsbInterface(Libusb1UsbConfiguration configuration, UsbInterfaceDescriptor descriptor, UsbEndpoint[] endpoints, boolean active) {
+        this.device = configuration.device;
         this.configuration = configuration;
         this.descriptor = descriptor;
         this.endpoints = endpoints;
         this.active = active;
 
-        this.libusb_device = configuration.device.libusb_device;
         endpointZero = new Libusb1UsbEndpoint(this, ENDPOINT_ZERO_DESCRIPTOR);
     }
 
@@ -36,10 +37,10 @@ public class Libusb1UsbInterface implements UsbInterface {
 
     // Should do set_configuration+claim_interface
     public void claim() throws UsbException {
-        nativeSetConfiguration(libusb_device, configuration.configurationDescriptor.bConfigurationValue());
+        nativeSetConfiguration(device.libusb_device_ptr, configuration.configurationDescriptor.bConfigurationValue());
         configuration.setActive(true);
 
-        libusb_handle = nativeClaimInterface(libusb_device, descriptor.bInterfaceNumber());
+        libusb_device_handle_ptr = nativeClaimInterface(device.libusb_device_ptr, descriptor.bInterfaceNumber());
     }
 
     public void claim(UsbInterfacePolicy policy) throws UsbException {
@@ -117,14 +118,14 @@ public class Libusb1UsbInterface implements UsbInterface {
     }
 
     public boolean isClaimed() {
-        return libusb_handle != 0;
+        return libusb_device_handle_ptr != 0;
     }
 
     public void release() throws UsbException {
         try {
-            nativeRelease(libusb_handle);
+            nativeRelease(libusb_device_handle_ptr);
         } finally {
-            libusb_handle = 0;
+            libusb_device_handle_ptr = 0;
         }
     }
 
@@ -133,13 +134,13 @@ public class Libusb1UsbInterface implements UsbInterface {
     // -----------------------------------------------------------------------
 
     native
-    private void nativeSetConfiguration(long device, int configuration)
+    private void nativeSetConfiguration(long libusb_device_ptr, int configuration)
         throws UsbException;
 
     native
-    private int nativeClaimInterface(long device, int bInterfaceNumber);
+    private long nativeClaimInterface(long libusb_device_ptr, int bInterfaceNumber);
 
     native
-    private void nativeRelease(int libusb_handle)
+    private void nativeRelease(long libusb_device_handle_ptr)
         throws UsbException;
 }

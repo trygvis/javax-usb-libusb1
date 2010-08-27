@@ -1,5 +1,7 @@
 package javalibusb1;
 
+import static javalibusb1.Libusb1UsbControlIrp.*;
+import static javalibusb1.Libusb1UsbDevice.internalSyncSubmitControl;
 import static javax.usb.UsbConst.*;
 
 import javax.usb.*;
@@ -105,41 +107,15 @@ public class Libusb1UsbPipe implements UsbPipe {
     // -----------------------------------------------------------------------
 
     private int internalSyncSubmit(UsbIrp irp) throws UsbException {
-        // 0 means infinite, not sure if that's what a user really want. I think there is an implicit 5 second
-        // default where - trygve
-        int timeout = 0;
-
-        checkIrp(irp);
-
-        if(irp instanceof UsbControlIrp) {
-            // TODO: This should really call UsbDevice.internalSyncSubmit or something similar for control transfers.
-            UsbControlIrp controlIrp = (UsbControlIrp) irp;
-            return libusb1.control_transfer(endpoint.usbInterface.libusb_handle,
-                controlIrp.bmRequestType(), controlIrp.bRequest(), controlIrp.wValue(), controlIrp.wIndex(),
-                timeout, controlIrp.getData(), controlIrp.getOffset(), (short)controlIrp.getLength());
-        }
-
-        if(getUsbEndpoint().getType() == ENDPOINT_TYPE_BULK) {
-            int transferred = libusb1.bulk_transfer(endpoint.usbInterface.libusb_handle,
-                getUsbEndpoint().getUsbEndpointDescriptor().bEndpointAddress(),
-                irp.getData(), irp.getOffset(), irp.getLength());
-
-            irp.setActualLength(transferred);
-            irp.complete();
-            return transferred;
-        }
-        throw new RuntimeException("Transfer type not implemented");
-    }
-
-    private void checkIrp(UsbIrp irp) {
-        if (irp == null) {
-            throw new IllegalArgumentException("irp");
-        }
+        // From what I can tell from the API you don't have to open a device to send control packets.
 
         if (irp instanceof UsbControlIrp) {
             if (endpoint.getType() != ENDPOINT_TYPE_CONTROL) {
                 throw new IllegalArgumentException("This is not a control endpoint.");
             }
+
+            internalSyncSubmitControl(endpoint.usbInterface.libusb_device_handle_ptr, createControlIrp((UsbControlIrp) irp));
+            return irp.getActualLength();
         }
 
         if (!isOpen()) {
@@ -150,16 +126,19 @@ public class Libusb1UsbPipe implements UsbPipe {
             throw new UsbNotActiveException();
         }
 
-        if (irp.getData() == null) {
-            throw new IllegalArgumentException("data == null");
-        }
+        // 0 means infinite, not sure if that's what a user really want. I think there is an implicit 5 second
+        // default where - trygve
+        int timeout = 0;
 
-        if (irp.getUsbException() != null) {
-            throw new IllegalArgumentException("usbException is not null");
-        }
+        if(getUsbEndpoint().getType() == ENDPOINT_TYPE_BULK) {
+            int transferred = libusb1.bulk_transfer(endpoint.usbInterface.libusb_device_handle_ptr,
+                getUsbEndpoint().getUsbEndpointDescriptor().bEndpointAddress(),
+                irp.getData(), irp.getOffset(), irp.getLength());
 
-        if (irp.isComplete()) {
-            throw new IllegalArgumentException("complete == true");
+            irp.setActualLength(transferred);
+            irp.complete();
+            return transferred;
         }
+        throw new RuntimeException("Transfer type not implemented");
     }
 }

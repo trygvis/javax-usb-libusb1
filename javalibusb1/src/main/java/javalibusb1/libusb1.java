@@ -8,20 +8,20 @@ class libusb1 implements Closeable {
 
     // This field is used from the native code.
     @SuppressWarnings({"FieldCanBeLocal", "UnusedDeclaration"})
-    private final long libusb_context;
+    private final long libusb_context_ptr;
 
-    libusb1(long libusb_context) {
-        this.libusb_context = libusb_context;
+    libusb1(long libusb_context_ptr) {
+        this.libusb_context_ptr = libusb_context_ptr;
     }
 
     public void close() {
-        close(libusb_context);
+        close(libusb_context_ptr);
     }
 
     public UsbDevice[] getDevices() {
         List<UsbDevice> devices = new ArrayList<UsbDevice>();
 
-        for (Libusb1UsbDevice device : get_devices(libusb_context)) {
+        for (Libusb1UsbDevice device : get_devices(libusb_context_ptr)) {
             if(device != null) {
                 devices.add(device);
             }
@@ -31,7 +31,7 @@ class libusb1 implements Closeable {
     }
 
     public void set_debug(int level) {
-        set_debug(libusb_context, level);
+        set_debug(libusb_context_ptr, level);
     }
 
     /**
@@ -62,7 +62,7 @@ class libusb1 implements Closeable {
     private Libusb1UsbDevice[] get_devices(long libusb_context);
 
     native
-    public static int control_transfer(long libusb_device, byte bmRequestType, byte bRequest, short wValue, short wIndex, long timeout,
+    public static int control_transfer(long libusb_device_ptr, byte bmRequestType, byte bRequest, short wValue, short wIndex, long timeout,
                                        byte[] bytes, int offset, short length) throws UsbException;
 
     native

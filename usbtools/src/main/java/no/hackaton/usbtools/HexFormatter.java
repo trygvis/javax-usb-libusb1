@@ -23,7 +23,7 @@ public class HexFormatter {
             if (i % 16 == 0) {
                 print.println();
             } else if (i % 8 == 0) {
-                print.print("   ");
+                print.print("  ");
             }
         }
 
