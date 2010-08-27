@@ -599,24 +599,58 @@ JNIEXPORT jobjectArray JNICALL Java_javalibusb1_libusb1_get_1devices
 }
 
 JNIEXPORT jint JNICALL Java_javalibusb1_libusb1_control_1transfer
-  (JNIEnv *env, jclass klass, jlong java_device, jbyte bmRequestType, jbyte bRequest, jshort wValue, jshort wIndex, jlong timeout)
+  (JNIEnv *env, jclass klass, jlong java_device, jbyte bmRequestType, jbyte bRequest, jshort wValue, jshort wIndex, jlong timeout, jbyteArray bytes, jint offset, jshort length)
 {
     int err;
     struct libusb_device* device;
-    struct libusb_device_handle *handle;
+    struct libusb_device_handle *handle = NULL;
+    uint8_t* data = NULL;
+    uint16_t wLength;
 
     device = (struct libusb_device*)(POINTER_STORAGE_TYPE)java_device;
+    fprintf(stderr, "java_device=%u\n", (POINTER_STORAGE_TYPE)java_device);
+    fprintf(stderr, "device=%p\n", device);
+
+    data = malloc(length);
+    if(data == NULL) {
+        throwPlatformExceptionMsgCode(env, err, "Unable to allocate memory buffer");
+        goto fail;
+    }
+
+    // If this is an OUT transfer, copy the bytes to data
+    if(!(bmRequestType & LIBUSB_ENDPOINT_DIR_MASK)) {
+        (*env)->GetByteArrayRegion(env, bytes, offset, length, (jbyte*)data);
+        if((*env)->ExceptionCheck(env)) {
+            goto fail;
+        }
+    }
+
+    wLength = length;
 
     if((err = usbw_open(device, &handle))) {
         throwPlatformExceptionMsgCode(env, err, "libusb_open(): %s", usbw_error_to_string(err));
-        return 0;
+        goto fail;
     }
 
-    if((err = usbw_control_transfer((struct libusb_device_handle*)handle, bmRequestType, bRequest, wValue, wIndex, NULL, 0, timeout)) < 0) {
+    if((err = usbw_control_transfer(handle, bmRequestType, bRequest, wValue, wIndex, data, wLength, timeout)) < 0) {
         throwPlatformExceptionMsgCode(env, err, "libusb_control_transfer(): %s", usbw_error_to_string(err));
+        goto fail;
     }
 
-    usbw_close(handle);
+    if(bmRequestType & LIBUSB_ENDPOINT_DIR_MASK) {
+        (*env)->SetByteArrayRegion(env, bytes, offset, length, (jbyte*)data);
+        if((*env)->ExceptionCheck(env)) {
+            goto fail;
+        }
+    }
+
+fail:
+    if(data) {
+        free(data);
+    }
+    if(handle) {
+        usbw_close(handle);
+    }
 
     return err;
 }

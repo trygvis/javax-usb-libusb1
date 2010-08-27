@@ -214,7 +214,27 @@ public class Libusb1UsbDevice implements UsbDevice, Closeable {
             throw new IllegalArgumentException("complete == true");
         }
 
-        libusb1.control_transfer(libusb_device, irp.bmRequestType(), irp.bRequest(), irp.wValue(), irp.wIndex(), 0);
+        if(irp.getLength() >= 65536) {
+            throw new IllegalArgumentException("irp.length > 64k");
+        }
+
+        long timeout = 1000;
+
+        int transferred = 0;
+        try {
+            transferred = libusb1.control_transfer(libusb_device,
+                irp.bmRequestType(), irp.bRequest(), irp.wValue(), irp.wIndex(), timeout,
+                irp.getData(), irp.getOffset(), (short)irp.getLength());
+        } catch (UsbException e) {
+            irp.setUsbException(e);
+            throw e;
+        }
+        finally {
+            // actualLength is undefined on exception, but we're trying to be as close to libusb as possible and set
+            // whatever libusb returns.
+            irp.setActualLength(transferred);
+            irp.setComplete(true);
+        }
     }
 
     // -----------------------------------------------------------------------
@@ -234,7 +254,6 @@ public class Libusb1UsbDevice implements UsbDevice, Closeable {
      */
     @SuppressWarnings({"UnusedDeclaration"})
     public void _setActiveConfiguration(byte n) {
-        System.out.println("Libusb1UsbDevice._setActiveConfiguration: n=" + n);
         activeConfiguration = n;
     }
 

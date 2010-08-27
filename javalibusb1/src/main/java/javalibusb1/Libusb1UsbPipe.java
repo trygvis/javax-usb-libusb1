@@ -112,9 +112,11 @@ public class Libusb1UsbPipe implements UsbPipe {
         checkIrp(irp);
 
         if(irp instanceof UsbControlIrp) {
+            // TODO: This should really call UsbDevice.internalSyncSubmit or something similar for control transfers.
             UsbControlIrp controlIrp = (UsbControlIrp) irp;
             return libusb1.control_transfer(endpoint.usbInterface.libusb_handle,
-                controlIrp.bmRequestType(), controlIrp.bRequest(), controlIrp.wValue(), controlIrp.wIndex(), timeout);
+                controlIrp.bmRequestType(), controlIrp.bRequest(), controlIrp.wValue(), controlIrp.wIndex(),
+                timeout, controlIrp.getData(), controlIrp.getOffset(), (short)controlIrp.getLength());
         }
 
         if(getUsbEndpoint().getType() == ENDPOINT_TYPE_BULK) {

@@ -16,6 +16,11 @@
       <artifactId>javalibusb1</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>no.hackaton</groupId>
+      <artifactId>javax.usb-extra</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>

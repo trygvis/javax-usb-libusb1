@@ -79,6 +79,7 @@
   <modules>
     <module>ftdi</module>
     <module>javax.usb</module>
+    <module>javax.usb-extra</module>
     <module>javalibusb1</module>
     <module>usbtools</module>
   </modules>

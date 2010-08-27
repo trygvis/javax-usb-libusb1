@@ -224,10 +224,15 @@ int usbw_get_string_descriptor_ascii(struct libusb_device_handle *handle, uint8_
  */
 
 int usbw_control_transfer(struct libusb_device_handle *handle, uint8_t bmRequestType, uint8_t bRequest, uint16_t wValue, uint16_t wIndex, unsigned char *data, uint16_t wLength, unsigned int timeout) {
-    usbw_printf("PRE: %s(%p, %u, %u, %u, %u, %p, %u)\n", __func__, handle, bmRequestType, bRequest, wValue, wIndex, data, wLength, timeout);
-    int err = libusb_control_transfer(handle, bmRequestType, bRequest, wValue, wIndex, data, wLength, timeout);
-    usbw_printf("RET: %s: err=%d (%s)\n", __func__, err, usbw_error_to_string(err));
-    return err;
+    usbw_printf("PRE: %s(%p, %u, %u, %u, %u, %p, %u, %d)\n", __func__, handle, bmRequestType, bRequest, wValue, wIndex, data, wLength, timeout);
+    int ret = libusb_control_transfer(handle, bmRequestType, bRequest, wValue, wIndex, data, wLength, timeout);
+    if(ret > 0) {
+        usbw_printf("RET: %s: transferred=%d\n", __func__, ret);
+    }
+    else {
+        usbw_printf("RET: %s: err=%d (%s)\n", __func__, ret, usbw_error_to_string(ret));
+    }
+    return ret;
 }
 
 int usbw_bulk_transfer(struct libusb_device_handle *handle, unsigned char endpoint, unsigned char *data, int length, int *transferred, unsigned int timeout) {

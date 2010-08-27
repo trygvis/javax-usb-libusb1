@@ -62,7 +62,8 @@ class libusb1 implements Closeable {
     private Libusb1UsbDevice[] get_devices(long libusb_context);
 
     native
-    public static int control_transfer(long libusb_device, byte bmRequestType, byte bRequest, short wValue, short wIndex, long timeout) throws UsbException;
+    public static int control_transfer(long libusb_device, byte bmRequestType, byte bRequest, short wValue, short wIndex, long timeout,
+                                       byte[] bytes, int offset, short length) throws UsbException;
 
     native
     public static int bulk_transfer(long libusb_device_handle, byte bEndpointAddress, byte[] buffer, int offest, int length);

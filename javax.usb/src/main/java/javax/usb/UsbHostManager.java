@@ -34,7 +34,6 @@ public final class UsbHostManager {
             throw new UsbException("Missing required property '" + JAVAX_USB_USBSERVICES_PROPERTY + "' from configuration file.");
         }
 
-
         // TODO: Use the thread's current context class loader?
 
         Class<?> usbServicesClass;
