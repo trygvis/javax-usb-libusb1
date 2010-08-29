@@ -21,6 +21,12 @@
       <artifactId>javax.usb-extra</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>1.4</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -82,6 +88,10 @@
             <program>
               <name>lsusb</name>
               <mainClass>no.hackaton.usbtools.lsusb</mainClass>
+            </program>
+            <program>
+              <name>fx2programmer</name>
+              <mainClass>no.hackaton.usbtools.Fx2Programmer</mainClass>
             </program>
           </programs>
         </configuration>

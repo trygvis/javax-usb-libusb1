@@ -1,9 +1,14 @@
 package javax.usb.extra;
 
 import javax.usb.*;
+import java.util.*;
 
 public class ExtraUsbUtil {
-    public static UsbDevice findDevice(UsbHub usbHub, short idVendor, short idProduct) {
+    public static boolean isUsbDevice(UsbDeviceDescriptor descriptor, short idVendor, short idProduct) {
+        return descriptor.idVendor() == idVendor && descriptor.idProduct() == idProduct;
+    }
+
+    public static UsbDevice findUsbDevice(UsbHub usbHub, short idVendor, short idProduct) {
         for (UsbDevice device : usbHub.getAttachedUsbDevices()) {
             if (device.isUsbHub()) {
                 continue;
@@ -11,7 +16,7 @@ public class ExtraUsbUtil {
 
             UsbDeviceDescriptor deviceDescriptor = device.getUsbDeviceDescriptor();
 
-            if (deviceDescriptor.idVendor() == idVendor && deviceDescriptor.idProduct() == idProduct) {
+            if (isUsbDevice(deviceDescriptor, idVendor, idProduct)) {
                 return device;
             }
         }
@@ -21,7 +26,7 @@ public class ExtraUsbUtil {
                 continue;
             }
 
-            UsbDevice foundDevice = findDevice((UsbHub) device, idVendor, idProduct);
+            UsbDevice foundDevice = findUsbDevice((UsbHub) device, idVendor, idProduct);
 
             if (foundDevice != null) {
                 return foundDevice;
@@ -29,5 +34,55 @@ public class ExtraUsbUtil {
         }
 
         return null;
+    }
+
+    public static List<UsbDevice> findUsbDevices(UsbHub usbHub, short idVendor, short idProduct) {
+        List<UsbDevice> devices = new ArrayList<UsbDevice>();
+
+        for (UsbDevice device : usbHub.getAttachedUsbDevices()) {
+            if (device.isUsbHub()) {
+                continue;
+            }
+
+            UsbDeviceDescriptor deviceDescriptor = device.getUsbDeviceDescriptor();
+
+            if (deviceDescriptor.idVendor() == idVendor && deviceDescriptor.idProduct() == idProduct) {
+                devices.add(device);
+            }
+        }
+
+        for (UsbDevice device : usbHub.getAttachedUsbDevices()) {
+            if (!device.isUsbHub()) {
+                continue;
+            }
+
+            List<UsbDevice> foundDevices = findUsbDevices((UsbHub) device, idVendor, idProduct);
+
+            devices.addAll(foundDevices);
+        }
+
+        return devices;
+    }
+
+    public static List<UsbDevice> listUsbDevices(UsbHub usbHub) {
+        List<UsbDevice> devices = new ArrayList<UsbDevice>();
+
+        for (UsbDevice device : usbHub.getAttachedUsbDevices()) {
+            if (device.isUsbHub()) {
+                continue;
+            }
+
+            devices.add(device);
+        }
+
+        for (UsbDevice device : usbHub.getAttachedUsbDevices()) {
+            if (!device.isUsbHub()) {
+                continue;
+            }
+
+            devices.addAll(listUsbDevices(usbHub));
+        }
+
+        return devices;
     }
 }
