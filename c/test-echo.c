@@ -109,8 +109,8 @@ int main(int argc, char* argv[]) {
 
         bytes_in_count += transferred_in;
         transfer_count++;
-//        printf("transferred_in=%d\n", transferred_in);
-        /*
+        printf("transferred_in=%d\n", transferred_in);
+
         for(int i = 0; i < transferred_in; i++) {
 
             if(i == 0) {
@@ -127,7 +127,6 @@ int main(int argc, char* argv[]) {
             printf("%02x ", in_data[i]);
         }
         printf("\n");
-        */
     }
 
 done:
