@@ -29,16 +29,15 @@
       </properties>
     </profile>
     <profile>
-      <id>algos</id>
+      <id>libusb.home</id>
       <activation>
-        <property>
-          <name>user.home</name>
-          <value>/Users/trygvis</value>
-        </property>
+        <file>
+          <exists>${libusb.home}</exists>
+        </file>
       </activation>
       <properties>
-        <includePath.libusb>${user.home}/opt/libusb-git/include/libusb-1.0</includePath.libusb>
-        <libDirectory.libusb>${user.home}/opt/libusb-git/lib</libDirectory.libusb>
+        <includePath.libusb>${custom-libusb}/include/libusb-1.0</includePath.libusb>
+        <libDirectory.libusb>${custom-libusb}/lib</libDirectory.libusb>
       </properties>
     </profile>
   </profiles>
@@ -70,7 +69,7 @@
             <clearDefaultOptions>true</clearDefaultOptions>
             <includePaths>
               <includePath>${includePath.libusb}</includePath>
-              <includePath>src/main/include</includePath>
+              <includePath>${basedir}/src/main/include</includePath>
             </includePaths>
           </c>
           <linker>
