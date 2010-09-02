@@ -19,7 +19,7 @@ volatile WORD counter;
 BYTE buttons[16];
 BYTE sample_counter = 0;
 
-void key_changed();
+void key_changed(BYTE new_state);
 
 static BYTE current_button_states;
 
@@ -49,9 +49,8 @@ void timer0_callback() {
             }
         }
 
-        if(all_samples_equal && first != current_button_states) {
-            current_button_states = first;
-            key_changed();
+        if(all_samples_equal) {
+            key_changed(first);
         }
         PB1 = 0;
     }
@@ -59,20 +58,29 @@ void timer0_callback() {
     PB0 = 0;
 }
 
-void key_changed() {
-    BYTE i = 0;
-    EP8FIFOBUF[i++] = (current_button_states & bmBIT0) > 0;
-    EP8FIFOBUF[i++] = (current_button_states & bmBIT1) > 0;
-    EP8FIFOBUF[i++] = (current_button_states & bmBIT2) > 0;
-    EP8FIFOBUF[i++] = (current_button_states & bmBIT3) > 0;
-    EP8FIFOBUF[i++] = (current_button_states & bmBIT4) > 0;
-    EP8FIFOBUF[i++] = (current_button_states & bmBIT5) > 0;
-    EP8FIFOBUF[i++] = (current_button_states & bmBIT6) > 0;
-    EP8FIFOBUF[i++] = (current_button_states & bmBIT7) > 0;
-    EP8FIFOBUF[i++] = IOA;
+void key_changed(BYTE new_state) {
+    BYTE i = 0, j = 0;
+    BYTE bm, current, new;
+
+    if(current_button_states == new_state) {
+        return;
+    }
+
+    for(i = 0; i < 8; i++) {
+        bm = 1 << i;
+        current = (current_button_states & bm) > 0;
+        new = (new_state & bm) > 0;
+
+        if(new != current) {
+            EP8FIFOBUF[j++] = new ? 'D' : 'U';
+            EP8FIFOBUF[j++] = '0' + i;
+        }
+    }
+
+    current_button_states = new_state;
 
     EP8BCH = 0;
-    EP8BCL = i;
+    EP8BCL = j;
     SYNCDELAY();
 }
 
