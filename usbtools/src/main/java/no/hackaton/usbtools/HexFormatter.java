@@ -6,7 +6,11 @@ import java.io.*;
 
 public class HexFormatter {
     public static void writeBytes(PrintStream print, byte[] bytes) {
-        for (int i = 0; i < bytes.length; i++) {
+        writeBytes(print, bytes, 0, bytes.length);
+    }
+
+    public static void writeBytes(PrintStream print, byte[] bytes, int offset, int length) {
+        for (int i = offset; i < length; i++) {
             byte b = bytes[i];
 
             String s = Integer.toHexString(unsignedShort(b));

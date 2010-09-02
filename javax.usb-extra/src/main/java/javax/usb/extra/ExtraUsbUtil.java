@@ -1,5 +1,7 @@
 package javax.usb.extra;
 
+import static javax.usb.util.UsbUtil.toHexString;
+
 import javax.usb.*;
 import java.util.*;
 
@@ -84,5 +86,13 @@ public class ExtraUsbUtil {
         }
 
         return devices;
+    }
+
+    public static String deviceIdToString(UsbDeviceDescriptor descriptor) {
+        return toHexString(descriptor.idVendor()) + ":" + toHexString(descriptor.idProduct());
+    }
+
+    public static String deviceIdToString(short idVendor, short idProduct) {
+        return toHexString(idVendor) + ":" + toHexString(idProduct);
     }
 }

@@ -74,7 +74,7 @@ when T0M = 1, Timer 0 uses CLKOUT/4.
 
 #define bmCKCON_T0 bmBIT3
 
-static WORD timer0us;
+static WORD timer0us = 0;
 static BYTE timer0us_tl;
 static BYTE timer0us_th;
 
@@ -107,7 +107,7 @@ Freq  | Divisor | 1us in cycles | 8bit in us |   16bit in us
 
                 TL0 = timer0us_tl;
                 TH0 = timer0us_th;
-                CKCON &= ~bmCKCON_T0;       // div = 12
+                CKCON &= ~bmCKCON_T0;          // div = 12
             }
             else {
                 TMOD |= TMOD_TIMER0_MODE_2;
@@ -121,13 +121,44 @@ Freq  | Divisor | 1us in cycles | 8bit in us |   16bit in us
                     CKCON |= bmCKCON_T0;        // div = 4
                 }
             }
-            TR0 = 1;
-            ENABLE_TIMER0();
+            break;
+        case CLK_48M:
+            // Something is wrong with the calculations for 48MHz.
+            // us = 1000 results in a 16ms interval
+            if(us >= 64) {
+                TMOD |= TMOD_TIMER0_MODE_1;
+                us = 65536 - (us * 4);
+                timer0us_tl = LSB(us);
+                timer0us_th = MSB(us);
+
+                TL0 = timer0us_tl;
+                TH0 = timer0us_th;
+                CKCON &= ~bmCKCON_T0;           // div = 12
+            }
+            else {
+                TMOD |= TMOD_TIMER0_MODE_2;
+                TL0 = 0;
+                if(us >= 21) {
+                    TH0 = 256 - (us * 4);
+                    CKCON &= ~bmCKCON_T0;       // div = 12
+                }
+                else {
+                    TH0 = 256 - (us * 12);
+                    CKCON |= bmCKCON_T0;        // div = 4
+                }
+            }
             break;
     }
+    TR0 = 1;
+    ENABLE_TIMER0();
 }
 
 void fx2_timer0_isr() {
+    // Don't do anything if not configured
+    if(timer0us == 0) {
+        return;
+    }
+
     switch(CPUFREQ) {
         case CLK_12M:
             if(timer0us >= 256) {

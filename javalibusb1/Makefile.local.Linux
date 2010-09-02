@@ -1,7 +1,0 @@
-JDK_HOME=$(HOME)/opt/java/jdk1.6.0_16
-JAVA_HOME=$(HOME)/opt/ejre1.6.0_10
-CCFLAGS += -I$(JDK_HOME)/include/solaris
-
-#JAVA_HOME=/usr/lib/jvm/java-6-sun
-
-CCFLAGS += -I$(JDK_HOME)/include/linux

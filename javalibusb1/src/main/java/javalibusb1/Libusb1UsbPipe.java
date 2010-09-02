@@ -1,7 +1,7 @@
 package javalibusb1;
 
 import static javalibusb1.Libusb1UsbControlIrp.*;
-import static javalibusb1.Libusb1UsbDevice.internalSyncSubmitControl;
+import static javalibusb1.Libusb1UsbDevice.*;
 import static javax.usb.UsbConst.*;
 
 import javax.usb.*;
@@ -130,10 +130,18 @@ public class Libusb1UsbPipe implements UsbPipe {
         // default where - trygve
         int timeout = 0;
 
-        if(getUsbEndpoint().getType() == ENDPOINT_TYPE_BULK) {
+        if (getUsbEndpoint().getType() == ENDPOINT_TYPE_BULK) {
             int transferred = libusb1.bulk_transfer(endpoint.usbInterface.libusb_device_handle_ptr,
                 getUsbEndpoint().getUsbEndpointDescriptor().bEndpointAddress(),
-                irp.getData(), irp.getOffset(), irp.getLength());
+                irp.getData(), irp.getOffset(), irp.getLength(), timeout);
+
+            irp.setActualLength(transferred);
+            irp.complete();
+            return transferred;
+        } else if (getUsbEndpoint().getType() == ENDPOINT_TYPE_INTERRUPT) {
+            int transferred = libusb1.interrupt_transfer(endpoint.usbInterface.libusb_device_handle_ptr,
+                getUsbEndpoint().getUsbEndpointDescriptor().bEndpointAddress(),
+                irp.getData(), irp.getOffset(), irp.getLength(), timeout);
 
             irp.setActualLength(transferred);
             irp.complete();

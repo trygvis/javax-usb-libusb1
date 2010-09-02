@@ -241,3 +241,10 @@ int usbw_bulk_transfer(struct libusb_device_handle *handle, unsigned char endpoi
     usbw_printf("RET: %s: err=%d (%s)\n", __func__, err, usbw_error_to_string(err));
     return err;
 }
+
+int usbw_interrupt_transfer(struct libusb_device_handle *handle, unsigned char endpoint, unsigned char *data, int length, int *transferred, unsigned int timeout) {
+    usbw_printf("PRE: %s(%p, 0x%02x, %p, %d, %p, %u)\n", __func__, handle, endpoint, data, length, transferred, timeout);
+    int err = libusb_interrupt_transfer(handle, endpoint, data, length, transferred, timeout);
+    usbw_printf("RET: %s: err=%d (%s)\n", __func__, err, usbw_error_to_string(err));
+    return err;
+}

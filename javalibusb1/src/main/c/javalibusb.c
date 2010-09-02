@@ -2,16 +2,7 @@
 #include "usbw.h"
 #include <stdlib.h>
 #include <stdarg.h>
-
-// This hack is needed when storing the context and device pointers in the Java
-// objects. The pointers are stored in a jlong and has to be cast back to a
-// pointer type to prevent warnings from the compiler.
-// The check_jvm_platform asserts that a jlong can store the pointer.
-#ifdef __LP64__
-#define POINTER_STORAGE_TYPE long
-#else
-#define POINTER_STORAGE_TYPE int
-#endif
+#include "javalibusb.h"
 
 /* javalibusb1.Libusb1UsbDevice */
 jclass libusb1UsbDeviceClass = NULL;
@@ -82,6 +73,8 @@ will basically all of the reference counting.
 usb_init() should be called as a part of the static initializer.
 */
 
+static void releaseReferences(JNIEnv *env);
+
 static jclass findAndReferenceClass(JNIEnv *env, const char* name) {
     fprintf(stderr, "Loading class %s\n", name);
     fflush(stderr);
@@ -109,6 +102,10 @@ static jclass findAndReferenceClass(JNIEnv *env, const char* name) {
 }
 
 static void unreferenceClass(JNIEnv *env, jclass* klass) {
+    if(klass == NULL) {
+        return;
+    }
+
     (*env)->DeleteGlobalRef(env, *klass);
     *klass = NULL;
 }
@@ -299,114 +296,119 @@ JNIEXPORT jobject JNICALL Java_javalibusb1_libusb1_create
     // TODO: Create some macros to do the lookups
     /* Lookups */
     if((libusb1UsbDeviceClass = findAndReferenceClass(env, "javalibusb1/Libusb1UsbDevice")) == NULL) {
-        return NULL;
+        goto fail;
     }
     if((libusb1UsbDeviceConstructor = (*env)->GetMethodID(env, libusb1UsbDeviceClass, "<init>", "(IBBILjavax/usb/UsbDeviceDescriptor;)V")) == NULL) {
-        return NULL;
+        goto fail;
     }
     if((libusb1UsbDeviceSetConfiguration = (*env)->GetMethodID(env, libusb1UsbDeviceClass, "_setConfiguration", "(Ljavax/usb/UsbConfiguration;B)V")) == NULL) {
-        return NULL;
+        goto fail;
     }
     if((libusb1UsbDeviceSetActiveConfiguration = (*env)->GetMethodID(env, libusb1UsbDeviceClass, "_setActiveConfiguration", "(B)V")) == NULL) {
-        return NULL;
+        goto fail;
     }
 
     if((libusb1UsbConfigurationClass = findAndReferenceClass(env, "javalibusb1/Libusb1UsbConfiguration")) == NULL) {
-        return NULL;
+        goto fail;
     }
     if((libusb1UsbConfigurationConstructor = (*env)->GetMethodID(env, libusb1UsbConfigurationClass, "<init>", "(Ljavalibusb1/Libusb1UsbDevice;Ljavax/usb/UsbConfigurationDescriptor;[[Ljavax/usb/UsbInterface;Z)V")) == NULL) {
-        return NULL;
+        goto fail;
     }
 
     if((libusb1UsbInterfaceClass = findAndReferenceClass(env, "javalibusb1/Libusb1UsbInterface")) == NULL) {
-        return NULL;
+        goto fail;
     }
     if((libusb1UsbInterfaceConstructor = (*env)->GetMethodID(env, libusb1UsbInterfaceClass, "<init>", "(Ljavalibusb1/Libusb1UsbConfiguration;Ljavax/usb/UsbInterfaceDescriptor;[Ljavax/usb/UsbEndpoint;Z)V")) == NULL) {
-        return NULL;
+        goto fail;
     }
 
     if((libusb1UsbEndpointClass = findAndReferenceClass(env, "javalibusb1/Libusb1UsbEndpoint")) == NULL) {
-        return NULL;
+        goto fail;
     }
     if((libusb1UsbEndpointConstructor = (*env)->GetMethodID(env, libusb1UsbEndpointClass, "<init>", "(Ljavalibusb1/Libusb1UsbInterface;Ljavax/usb/UsbEndpointDescriptor;)V")) == NULL) {
-        return NULL;
+        goto fail;
     }
 
     if((usbDeviceDescriptorClass = findAndReferenceClass(env, "javax/usb/UsbDeviceDescriptor")) == NULL) {
-        return NULL;
+        goto fail;
     }
 
     if((usbConfigurationClass = findAndReferenceClass(env, "javax/usb/UsbConfiguration")) == NULL) {
-        return NULL;
+        goto fail;
     }
 
     if((usbInterfaceClass = findAndReferenceClass(env, "javax/usb/UsbInterface")) == NULL) {
-        return NULL;
+        goto fail;
     }
     if((usbInterfaceArrayClass = findAndReferenceClass(env, "[Ljavax/usb/UsbInterface;")) == NULL) {
-        return NULL;
+        goto fail;
     }
 
     if((usbInterfaceDescriptorClass = findAndReferenceClass(env, "javax/usb/UsbInterfaceDescriptor")) == NULL) {
-        return NULL;
+        goto fail;
     }
 
     if((usbEndpointClass = findAndReferenceClass(env, "javax/usb/UsbEndpoint")) == NULL) {
-        return NULL;
+        goto fail;
     }
 
     if((usbEndpointDescriptorClass = findAndReferenceClass(env, "javax/usb/UsbEndpointDescriptor")) == NULL) {
-        return NULL;
+        goto fail;
     }
 
     if((usbPlatformExceptionClass = findAndReferenceClass(env, "javax/usb/UsbPlatformException")) == NULL) {
-        return NULL;
+        goto fail;
     }
     if((usbPlatformExceptionConstructorMsgCode = (*env)->GetMethodID(env, usbPlatformExceptionClass, "<init>", "(Ljava/lang/String;I)V")) == NULL) {
-        return NULL;
+        goto fail;
     }
 
     if((usbDisconnectedExceptionClass = findAndReferenceClass(env, "javax/usb/UsbDisconnectedException")) == NULL) {
-        return NULL;
+        goto fail;
     }
     if((usbDisconnectedExceptionConstructorMsg = (*env)->GetMethodID(env, usbDisconnectedExceptionClass, "<init>", "(Ljava/lang/String;)V")) == NULL) {
-        return NULL;
+        goto fail;
     }
 
     if((defaultUsbDeviceDescriptorClass = findAndReferenceClass(env, "javax/usb/impl/DefaultUsbDeviceDescriptor")) == NULL) {
-        return NULL;
+        goto fail;
     }
     if((defaultUsbDeviceDescriptorConstructor = (*env)->GetMethodID(env, defaultUsbDeviceDescriptorClass, "<init>", "(SBBBBSSSBBBB)V")) == NULL) {
-        return NULL;
+        goto fail;
     }
 
     if((defaultUsbConfigurationDescriptorClass = findAndReferenceClass(env, "javax/usb/impl/DefaultUsbConfigurationDescriptor")) == NULL) {
-        return NULL;
+        goto fail;
     }
     if((defaultUsbConfigurationDescriptorConstructor = (*env)->GetMethodID(env, defaultUsbConfigurationDescriptorClass, "<init>", "(BBBBBS)V")) == NULL) {
-        return NULL;
+        goto fail;
     }
 
     if((defaultUsbInterfaceDescriptorClass = findAndReferenceClass(env, "javax/usb/impl/DefaultUsbInterfaceDescriptor")) == NULL) {
-        return NULL;
+        goto fail;
     }
     if((defaultUsbInterfaceDescriptorConstructor = (*env)->GetMethodID(env, defaultUsbInterfaceDescriptorClass, "<init>", "(BBBBBBB)V")) == NULL) {
-        return NULL;
+        goto fail;
     }
 
     if((defaultUsbEndpointDescriptorClass = findAndReferenceClass(env, "javax/usb/impl/DefaultUsbEndpointDescriptor")) == NULL) {
-        return NULL;
+        goto fail;
     }
     if((defaultUsbEndpointDescriptorConstructor = (*env)->GetMethodID(env, defaultUsbEndpointDescriptorClass, "<init>", "(BBBS)V")) == NULL) {
-        return NULL;
+        goto fail;
     }
 
     /* Initialization, phase III */
     jmethodID c = (*env)->GetMethodID(env, klass, "<init>", "(J)V");
 
+    if((*env)->ExceptionCheck(env)) {
+        goto fail;
+    }
+
     return (*env)->NewObject(env, klass, c, context);
 
 fail:
+    releaseReferences(env);
     return NULL;
 }
 
@@ -415,7 +417,13 @@ JNIEXPORT void JNICALL Java_javalibusb1_libusb1_close
 {
     struct libusb_context *context = (struct libusb_context *)(POINTER_STORAGE_TYPE)java_context;
 
-    // In the oposite order of referencing
+    releaseReferences(env);
+
+    usbw_exit(context);
+}
+
+static void releaseReferences(JNIEnv *env) {
+    // In the opposite order of referencing
     unreferenceClass(env, &defaultUsbEndpointDescriptorClass);
     unreferenceClass(env, &defaultUsbInterfaceDescriptorClass);
     unreferenceClass(env, &defaultUsbConfigurationDescriptorClass);
@@ -433,8 +441,6 @@ JNIEXPORT void JNICALL Java_javalibusb1_libusb1_close
     unreferenceClass(env, &libusb1UsbInterfaceClass);
     unreferenceClass(env, &libusb1UsbConfigurationClass);
     unreferenceClass(env, &libusb1UsbDeviceClass);
-
-    usbw_exit(context);
 }
 
 JNIEXPORT void JNICALL Java_javalibusb1_libusb1_set_1debug
@@ -632,6 +638,7 @@ JNIEXPORT jint JNICALL Java_javalibusb1_libusb1_control_1transfer
         goto fail;
     }
 
+    // If this is an IN transfer, copy the data to bytes
     if(bmRequestType & LIBUSB_ENDPOINT_DIR_MASK) {
         (*env)->SetByteArrayRegion(env, bytes, offset, length, (jbyte*)data);
         if((*env)->ExceptionCheck(env)) {
@@ -650,25 +657,73 @@ fail:
     return err;
 }
 
-JNIEXPORT jint JNICALL Java_javalibusb1_libusb1_bulk_1transfer
-  (JNIEnv *env, jclass klass, jlong libusb_device_handle_ptr, jbyte bEndpointAddress, jbyteArray java_buffer, jint offset, jint length)
+enum transferType {
+    transferTypeBulk,
+    transferTypeInterrupt
+};
+
+static jint bulk_or_interrupt_transfer(enum transferType transferType, JNIEnv *env, jclass klass, jlong libusb_device_handle_ptr, jbyte bEndpointAddress, jbyteArray bytes, jint offset, jint length, jlong timeout)
 {
-    jbyte* buffer;
-    int transferred;
     int err;
     struct libusb_device_handle *handle = (struct libusb_device_handle *)(POINTER_STORAGE_TYPE)libusb_device_handle_ptr;
+    uint8_t* data = NULL;
+    int transferred;
 
-    const int timeout = 0;
-
-    buffer = (*env)->GetByteArrayElements(env, java_buffer, NULL);
-
-    if((err = usbw_bulk_transfer(handle, bEndpointAddress, (unsigned char *)buffer + offset, length, &transferred, timeout))) {
-        throwPlatformExceptionMsgCode(env, err, "libusb_bulk_transfer(): %s", usbw_error_to_string(err));
+    data = malloc(length);
+    if(data == NULL) {
+        throwPlatformExceptionMsgCode(env, err, "Unable to allocate memory.");
+        goto fail;
     }
 
-    (*env)->ReleaseByteArrayElements(env, java_buffer, buffer, JNI_COMMIT);
+    // If this is an OUT transfer, copy the bytes to data
+    if(!(bEndpointAddress & LIBUSB_ENDPOINT_DIR_MASK)) {
+        (*env)->GetByteArrayRegion(env, bytes, offset, length, (jbyte*)data);
+        if((*env)->ExceptionCheck(env)) {
+            goto fail;
+        }
+    }
+
+    switch(transferType) {
+        case transferTypeBulk:
+            if((err = usbw_bulk_transfer(handle, bEndpointAddress, (unsigned char *)data + offset, length, &transferred, timeout))) {
+                throwPlatformExceptionMsgCode(env, err, "libusb_bulk_transfer(): %s", usbw_error_to_string(err));
+                goto fail;
+            }
+            break;
+        case transferTypeInterrupt:
+            if((err = usbw_interrupt_transfer(handle, bEndpointAddress, (unsigned char *)data + offset, length, &transferred, timeout))) {
+                throwPlatformExceptionMsgCode(env, err, "libusb_interrupt_transfer(): %s", usbw_error_to_string(err));
+                goto fail;
+            }
+            break;
+    }
+
+    // If this is an IN transfer, copy the data to bytes
+    if(bEndpointAddress & LIBUSB_ENDPOINT_DIR_MASK) {
+      (*env)->SetByteArrayRegion(env, bytes, offset, length, (jbyte*)data);
+      if((*env)->ExceptionCheck(env)) {
+          goto fail;
+      }
+    }
+
+fail:
+    if(data) {
+        free(data);
+    }
 
     return transferred;
+}
+
+JNIEXPORT jint JNICALL Java_javalibusb1_libusb1_bulk_1transfer
+  (JNIEnv *env, jclass klass, jlong libusb_device_handle_ptr, jbyte bEndpointAddress, jbyteArray bytes, jint offset, jint length, jlong timeout)
+{
+    return bulk_or_interrupt_transfer(transferTypeBulk, env, klass, libusb_device_handle_ptr, bEndpointAddress, bytes, offset, length, timeout);
+}
+
+JNIEXPORT jint JNICALL Java_javalibusb1_libusb1_interrupt_1transfer
+  (JNIEnv *env, jclass klass, jlong libusb_device_handle_ptr, jbyte bEndpointAddress, jbyteArray bytes, jint offset, jint length, jlong timeout)
+{
+    return bulk_or_interrupt_transfer(transferTypeInterrupt, env, klass, libusb_device_handle_ptr, bEndpointAddress, bytes, offset, length, timeout);
 }
 
 /*****************************************************************************

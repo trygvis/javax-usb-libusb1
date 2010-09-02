@@ -12,7 +12,11 @@
 
 void main(void)
 {
-    OED = 0xff;         // port B[0:7] = out
+    OEA = 0x00;         // port A[0:7] = in
+    OEB = 0xff;         // port B[0:7] = out
+    OED = 0xff;         // port D[0:7] = out
+
+    IOB = 0xff;
 
 //    SETCPUFREQ(CLK_48M);
 //    SETIF48MHZ();
@@ -25,6 +29,10 @@ void main(void)
 
     while(1) {
         PD1 = !PD1;
+        delay(100);
+        IOB = IOB + 1;
+//        IOB = ~IOA;
+//        IOB = IOA;
     }
 }
 

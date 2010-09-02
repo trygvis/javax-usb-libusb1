@@ -19,7 +19,9 @@ volatile WORD counter;
 BYTE buttons[16];
 BYTE sample_counter = 0;
 
-void key_pressed(BYTE keys);
+void key_changed();
+
+static BYTE current_button_states;
 
 /**
  * This does 16 samples, checks if they're all stable and if they are calls
@@ -29,10 +31,10 @@ void key_pressed(BYTE keys);
  */
 void timer0_callback() {
     BYTE first, i;
-    __bit change = 1;
+    __bit all_samples_equal = 1;
 
     PB0 = 1;
-    buttons[sample_counter++] = IOA;
+    buttons[sample_counter++] = ~IOA;
 
     if(sample_counter == sizeof(buttons)) {
         PB1 = 1;
@@ -42,14 +44,14 @@ void timer0_callback() {
         first = buttons[0];
         for(i = 1; i < sizeof(buttons); i++) {
             if(buttons[i] != first) {
-                change = 0;
+                all_samples_equal = 0;
                 break;
             }
         }
 
-//        change = 1;
-        if(change) {
-            key_pressed(first);
+        if(all_samples_equal && first != current_button_states) {
+            current_button_states = first;
+            key_changed();
         }
         PB1 = 0;
     }
@@ -57,25 +59,28 @@ void timer0_callback() {
     PB0 = 0;
 }
 
-void key_pressed(BYTE keys) {
-    BYTE i = 3;
-    EP6FIFOBUF[i++] = keys & bmBIT0;
-    EP6FIFOBUF[i++] = keys & bmBIT1;
-    EP6FIFOBUF[i++] = keys & bmBIT2;
-    EP6FIFOBUF[i++] = keys & bmBIT3;
-    EP6FIFOBUF[i++] = keys & bmBIT4;
-    EP6FIFOBUF[i++] = keys & bmBIT5;
-    EP6FIFOBUF[i++] = keys & bmBIT6;
-    EP6FIFOBUF[i++] = keys & bmBIT7;
-    EP6FIFOBUF[i++] = IOA;
+void key_changed() {
+    BYTE i = 0;
+    EP8FIFOBUF[i++] = (current_button_states & bmBIT0) > 0;
+    EP8FIFOBUF[i++] = (current_button_states & bmBIT1) > 0;
+    EP8FIFOBUF[i++] = (current_button_states & bmBIT2) > 0;
+    EP8FIFOBUF[i++] = (current_button_states & bmBIT3) > 0;
+    EP8FIFOBUF[i++] = (current_button_states & bmBIT4) > 0;
+    EP8FIFOBUF[i++] = (current_button_states & bmBIT5) > 0;
+    EP8FIFOBUF[i++] = (current_button_states & bmBIT6) > 0;
+    EP8FIFOBUF[i++] = (current_button_states & bmBIT7) > 0;
+    EP8FIFOBUF[i++] = IOA;
 
-//    EP6BCL = 8;
-//    SYNCDELAY();
+    EP8BCH = 0;
+    EP8BCL = i;
+    SYNCDELAY();
 }
 
 void main(void)
 {
     volatile WORD count = 0;
+    volatile BYTE last_ioa = 0;
+    volatile BYTE current_ioa = 0;
 
     REVCTL=0; // not using advanced endpoint controls
 
@@ -83,6 +88,7 @@ void main(void)
     RENUMERATE_UNCOND();
 
     SETCPUFREQ(CLK_48M);
+    SETCPUFREQ(CLK_12M);
 
     SETIF48MHZ();
 
@@ -113,11 +119,8 @@ void main(void)
     SYNCDELAY();
 
     // Endpoint 8
-    EP8CFG &= ~bmVALID;
+    EP2CFG = bmVALID + EPCFG_DIRECTION_IN + EPCFG_TYPE_INT + EPCFG_BUFFER_DOUBLE;
     SYNCDELAY();
-
-    EP2BCH = 0;
-    EP2BCL = 0;
 
     // Port A setup
     PORTACFG=0x00;      // port A = IO
@@ -125,17 +128,12 @@ void main(void)
 
     OEB = 0xff;         // port B[0:7] = out
 
-    // Timer setup
-    // Make timer0 a 16bit timer
-    TMOD = bmBIT1;
+    fx2_setup_timer0(1000); // fire every ms
 
     EA=1;
 
-    ENABLE_TIMER0();
-    // Implicitly enables timer0
-    TR0 = 1;
-
     // Arm EP2 to tell the host that we're ready to receive
+    EP2BCH = 0;
     EP2BCL = 0x00;
     SYNCDELAY();
 
@@ -143,8 +141,15 @@ void main(void)
     while(1) {
         if (got_sud) {
             handle_setupdata();
-            got_sud=FALSE;
+            got_sud = FALSE;
         }
+
+//        current_ioa = ~IOA;
+//        if(current_ioa != last_ioa) {
+//            EP8FIFOBUF[0] = current_ioa;
+//            EP8BCL = 0x01;
+//        }
+//        last_ioa = current_ioa;
 
         // All EP2 buffers are empty, nothing to do
         if(EP2468STAT & bmEP2EMPTY) {

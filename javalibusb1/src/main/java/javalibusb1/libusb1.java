@@ -66,7 +66,10 @@ class libusb1 implements Closeable {
                                        byte[] bytes, int offset, short length) throws UsbException;
 
     native
-    public static int bulk_transfer(long libusb_device_handle, byte bEndpointAddress, byte[] buffer, int offest, int length);
+    public static int bulk_transfer(long libusb_device_handle, byte bEndpointAddress, byte[] buffer, int offest, int length, long timeout);
+
+    native
+    public static int interrupt_transfer(long libusb_device_handle, byte bEndpointAddress, byte[] buffer, int offest, int length, long timeout);
 
     static {
         NarSystem.loadLibrary();

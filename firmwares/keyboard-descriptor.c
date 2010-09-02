@@ -3,6 +3,8 @@
 
 #pragma constseg DSCR_AREA
 
+#define bNumEndpoints 3
+
 __code struct device_descriptor dev_dscr = {
     sizeof(struct device_descriptor),
     DSCR_DEVICE_TYPE,
@@ -37,6 +39,7 @@ __code struct highspd_dscr_t {
     struct interface_descriptor interface;
     struct endpoint_descriptor endpoint2;
     struct endpoint_descriptor endpoint6;
+    struct endpoint_descriptor endpoint8;
 } highspd_dscr = {
     {
         sizeof(struct configuration_descriptor),
@@ -53,7 +56,7 @@ __code struct highspd_dscr_t {
         DSCR_INTERFACE_TYPE,
         0,
         0,
-        2,
+        bNumEndpoints,
         0xff,
         0xff,
         0xff,
@@ -74,6 +77,14 @@ __code struct highspd_dscr_t {
         ENDPOINT_TYPE_BULK,
         512,
         0x00
+    },
+    {
+        sizeof(struct endpoint_descriptor),
+        DSCR_ENDPOINT_TYPE,
+        0x88,
+        ENDPOINT_TYPE_INT,
+        64,
+        6           // 2^6 * 125us polling interval = 8ms
     }
 };
 
@@ -82,6 +93,7 @@ __code struct fullspd_dscr_t {
     struct interface_descriptor interface;
     struct endpoint_descriptor endpoint2;
     struct endpoint_descriptor endpoint6;
+    struct endpoint_descriptor endpoint8;
 } fullspd_dscr = {
     {
         sizeof(struct configuration_descriptor),
@@ -98,7 +110,7 @@ __code struct fullspd_dscr_t {
         DSCR_INTERFACE_TYPE,
         0,
         0,
-        2,
+        bNumEndpoints,
         0xff,
         0xff,
         0xff,
@@ -119,6 +131,14 @@ __code struct fullspd_dscr_t {
         ENDPOINT_TYPE_BULK,
         64,
         0x00
+    },
+    {
+        sizeof(struct endpoint_descriptor),
+        DSCR_ENDPOINT_TYPE,
+        0x88,
+        ENDPOINT_TYPE_INT,
+        64,
+        12          // 12 * 1ms polling interval = 12ms
     }
 };
 
