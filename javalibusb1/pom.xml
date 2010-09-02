@@ -17,30 +17,11 @@
       <version>${project.version}</version>
     </dependency>
   </dependencies>
-  <profiles>
-    <profile>
-      <id>default-properties</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <properties>
-        <includePath.libusb>/opt/local/include/libusb-1.0</includePath.libusb>
-        <libDirectory.libusb>/opt/local/include/libusb-1.0</libDirectory.libusb>
-      </properties>
-    </profile>
-    <profile>
-      <id>libusb.home</id>
-      <activation>
-        <file>
-          <exists>${libusb.home}</exists>
-        </file>
-      </activation>
-      <properties>
-        <includePath.libusb>${custom-libusb}/include/libusb-1.0</includePath.libusb>
-        <libDirectory.libusb>${custom-libusb}/lib</libDirectory.libusb>
-      </properties>
-    </profile>
-  </profiles>
+  <properties>
+    <includePath.libusb>${libusb.home}/include/libusb-1.0</includePath.libusb>
+    <libDirectory.libusb>${libusb.home}/lib</libDirectory.libusb>
+  </properties>
+  <!-- TODO: try to add the enforcer plugin to make sure that libusb.home is set -->
   <build>
     <plugins>
       <plugin>
