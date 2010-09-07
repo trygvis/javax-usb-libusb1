@@ -4,6 +4,17 @@
 #include <libusb.h>
 
 int main() {
+    printf("sizeof(jbyte)=%d\n", sizeof(jbyte));
+    printf("sizeof(jshort)=%d\n", sizeof(jshort));
+    printf("sizeof(jint)=%d\n", sizeof(jint));
+    printf("sizeof(jlong)=%d\n", sizeof(jlong));
+    printf("sizeof(void *)=%d\n", sizeof(void *));
+    printf("sizeof(uint8_t)=%d\n", sizeof(uint8_t));
+    printf("sizeof(uint16_t)=%d\n", sizeof(uint16_t));
+    printf("sizeof(int)=%d\n", sizeof(int));
+    printf("sizeof(long)=%d\n", sizeof(long));
+    printf("sizeof(long long)=%d\n", sizeof(long long));
+
     if(sizeof(struct libusb_device *) > sizeof(jlong)) {
         printf("Your platform's pointers are too long.\n");
         printf("A jlong has to be able to hold a struct libusb_device*:\n");
