@@ -34,7 +34,7 @@ public class Libusb1UsbDevice implements UsbDevice, Closeable {
 
     private boolean closed;
 
-    public Libusb1UsbDevice(int libusb_device_ptr, byte busNumber, byte deviceAddress, int speed, UsbDeviceDescriptor usbDeviceDescriptor) {
+    public Libusb1UsbDevice(long libusb_device_ptr, byte busNumber, byte deviceAddress, int speed, UsbDeviceDescriptor usbDeviceDescriptor) {
         this.libusb_device_ptr = libusb_device_ptr;
         this.busNumber = busNumber;
         this.deviceAddress = deviceAddress;

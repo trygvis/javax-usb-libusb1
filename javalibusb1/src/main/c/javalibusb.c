@@ -298,7 +298,7 @@ JNIEXPORT jobject JNICALL Java_javalibusb1_libusb1_create
     if((libusb1UsbDeviceClass = findAndReferenceClass(env, "javalibusb1/Libusb1UsbDevice")) == NULL) {
         goto fail;
     }
-    if((libusb1UsbDeviceConstructor = (*env)->GetMethodID(env, libusb1UsbDeviceClass, "<init>", "(IBBILjavax/usb/UsbDeviceDescriptor;)V")) == NULL) {
+    if((libusb1UsbDeviceConstructor = (*env)->GetMethodID(env, libusb1UsbDeviceClass, "<init>", "(JBBILjavax/usb/UsbDeviceDescriptor;)V")) == NULL) {
         goto fail;
     }
     if((libusb1UsbDeviceSetConfiguration = (*env)->GetMethodID(env, libusb1UsbDeviceClass, "_setConfiguration", "(Ljavax/usb/UsbConfiguration;B)V")) == NULL) {
@@ -795,6 +795,11 @@ JNIEXPORT void JNICALL Java_javalibusb1_Libusb1UsbInterface_nativeSetConfigurati
     int err;
 
     device = (struct libusb_device*)(POINTER_STORAGE_TYPE)libusb_device_ptr;
+
+    fprintf(stderr, "libusb_device_ptr=%lld\n", (long long)libusb_device_ptr);
+    fprintf(stderr, "libusb_device_ptr=%p\n", (void*)libusb_device_ptr);
+    fprintf(stderr, "device=%p\n", device);
+    fflush(stderr);
 
     if((err = usbw_open(device, &handle))) {
         throwPlatformExceptionMsgCode(env, err, "libusb_open(): %s", usbw_error_to_string(err));
