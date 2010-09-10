@@ -33,11 +33,9 @@ void timer0_callback() {
     BYTE first, i;
     __bit all_samples_equal = 1;
 
-    PB0 = 1;
     buttons[sample_counter++] = ~IOA;
 
     if(sample_counter == sizeof(buttons)) {
-        PB1 = 1;
         sample_counter = 0;
 
         // This is not very efficient
@@ -52,10 +50,7 @@ void timer0_callback() {
         if(all_samples_equal) {
             key_changed(first);
         }
-        PB1 = 0;
     }
-
-    PB0 = 0;
 }
 
 void key_changed(BYTE new_state) {
@@ -84,12 +79,7 @@ void key_changed(BYTE new_state) {
     SYNCDELAY();
 }
 
-void main(void)
-{
-    volatile WORD count = 0;
-    volatile BYTE last_ioa = 0;
-    volatile BYTE current_ioa = 0;
-
+void init_usb() {
     REVCTL=0; // not using advanced endpoint controls
 
     got_sud=FALSE;
@@ -129,12 +119,50 @@ void main(void)
     // Endpoint 8
     EP2CFG = bmVALID + EPCFG_DIRECTION_IN + EPCFG_TYPE_INT + EPCFG_BUFFER_DOUBLE;
     SYNCDELAY();
+}
 
-    // Port A setup
+void init_port_a() {
     PORTACFG=0x00;      // port A = IO
     OEA = 0x00;         // port A[0:7] = in
+}
+
+void init_port_b() {
+    char i;
 
     OEB = 0xff;         // port B[0:7] = out
+
+    for(i = 0; i < 8; i++) {
+        IOB = 1 << i;
+        delay(100);
+    }
+    for(i = 0; i < 8; i++) {
+        IOB = 1 << i;
+        delay(100);
+    }
+    for(i = 0; i < 8; i++) {
+        IOB = 1 << i;
+        delay(100);
+    }
+    IOB = 0xff;
+    delay(500);
+    IOB = 0x00;
+    delay(500);
+    IOB = 0xff;
+    delay(500);
+    IOB = 0x00;
+}
+
+void main(void)
+{
+    volatile WORD count = 0;
+    volatile BYTE last_ioa = 0;
+    volatile BYTE current_ioa = 0;
+    BYTE i;
+    BYTE lightIndex;
+
+    init_usb();
+    init_port_a();
+    init_port_b();
 
     fx2_setup_timer0(1000); // fire every ms
 
@@ -152,13 +180,6 @@ void main(void)
             got_sud = FALSE;
         }
 
-//        current_ioa = ~IOA;
-//        if(current_ioa != last_ioa) {
-//            EP8FIFOBUF[0] = current_ioa;
-//            EP8BCL = 0x01;
-//        }
-//        last_ioa = current_ioa;
-
         // All EP2 buffers are empty, nothing to do
         if(EP2468STAT & bmEP2EMPTY) {
             continue;
@@ -171,8 +192,24 @@ void main(void)
 
         count = MAKEWORD(EP2BCH, EP2BCL);
 
-//        for(i = 0; i < count; i++) {
-//            EP6FIFOBUF[i] = EP2FIFOBUF[i];
+        if(count == 2) {
+            lightIndex = '0' - EP2FIFOBUF[1];
+            if(EP2FIFOBUF[0] == (BYTE)'I') { // I for Illuminated
+                IOB |= (1 << lightIndex);
+            }
+            else if(EP2FIFOBUF[0] == (BYTE)'O') { // O for Off
+                IOB &= ~(1 << lightIndex);
+            }
+            IOB = 0xff;
+        }
+//        for(i = 0; i < count; i += 2) {
+//            lightIndex = '0' - EP2FIFOBUF[i + 1];
+//            if(EP2FIFOBUF[i] == (BYTE)'I') { // I for Illuminated
+//                IOB |= (1 << lightIndex);
+//            }
+//            else if(EP2FIFOBUF[i] == (BYTE)'O') { // O for Off
+//                IOB &= ~(1 << lightIndex);
+//            }
 //        }
 
         EP6FIFOBUF[0] = MSB(counter);
