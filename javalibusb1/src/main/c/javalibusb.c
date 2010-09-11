@@ -796,11 +796,6 @@ JNIEXPORT void JNICALL Java_javalibusb1_Libusb1UsbInterface_nativeSetConfigurati
 
     device = (struct libusb_device*)(POINTER_STORAGE_TYPE)libusb_device_ptr;
 
-    fprintf(stderr, "libusb_device_ptr=%lld\n", (long long)libusb_device_ptr);
-    fprintf(stderr, "libusb_device_ptr=%p\n", (void*)libusb_device_ptr);
-    fprintf(stderr, "device=%p\n", device);
-    fflush(stderr);
-
     if((err = usbw_open(device, &handle))) {
         throwPlatformExceptionMsgCode(env, err, "libusb_open(): %s", usbw_error_to_string(err));
         return;
