@@ -1,0 +1,3 @@
+[submodule "libusb-git"]
+	path = libusb-git
+	url = git://git.libusb.org/libusb-trygvis

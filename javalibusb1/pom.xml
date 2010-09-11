@@ -21,29 +21,10 @@
     <includePath.libusb>${libusb.home}/include/libusb-1.0</includePath.libusb>
     <libDirectory.libusb>${libusb.home}/lib</libDirectory.libusb>
   </properties>
-  <!-- TODO: try to add the enforcer plugin to make sure that libusb.home is set -->
   <build>
     <plugins>
       <plugin>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <executions>
-          <execution>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <rules>
-            <requireProperty>
-              <property>libusb.home</property>
-            </requireProperty>
-          </rules>
-        </configuration>
-      </plugin>
-      <plugin>
         <artifactId>maven-nar-plugin</artifactId>
-        <version>2.1-SNAPSHOT</version>
         <extensions>true</extensions>
         <configuration>
           <libraries>

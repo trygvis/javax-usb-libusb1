@@ -13,79 +13,81 @@
     </dependency>
   </dependencies>
   <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <configuration>
+            <source>1.5</source>
+            <target>1.5</target>
+          </configuration>
+        </plugin>
+        <plugin>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>1.0-beta-1</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>2.6</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-help-plugin</artifactId>
+          <version>2.1.1</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>2.4.3</version>
+          <configuration>
+            <encoding>UTF-8</encoding>
+          </configuration>
+        </plugin>
+        <plugin>
+          <artifactId>maven-nar-plugin</artifactId>
+          <version>2.1-SNAPSHOT</version>
+          <extensions>true</extensions>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>1.2</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
     <plugins>
       <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <source>1.5</source>
-          <target>1.5</target>
-        </configuration>
-      </plugin>
-      <plugin>
         <artifactId>maven-enforcer-plugin</artifactId>
-        <version>1.0-beta-1</version>
-      </plugin>
-      <plugin>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.6</version>
-      </plugin>
-      <plugin>
-        <artifactId>maven-help-plugin</artifactId>
-        <version>2.1.1</version>
-      </plugin>
-      <plugin>
-        <artifactId>maven-resources-plugin</artifactId>
-        <version>2.4.3</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+          </execution>
+        </executions>
         <configuration>
-          <encoding>UTF-8</encoding>
+          <rules>
+            <requireProperty>
+              <property>libusb.home</property>
+            </requireProperty>
+            <requireProperty>
+              <property>libusb.cflags</property>
+            </requireProperty>
+          </rules>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.freehep</groupId>
-        <artifactId>freehep-nar-plugin</artifactId>
-        <version>2.0-alpha-10</version>
       </plugin>
     </plugins>
   </build>
   <profiles>
     <profile>
-      <id>repositories</id>
-      <repositories>
-        <repository>
-          <id>freehep</id>
-          <url>http://java.freehep.org/maven2</url>
-          <snapshots>
-            <enabled>false</enabled>
-          </snapshots>
-        </repository>
-        <repository>
-          <id>freehep</id>
-          <url>http://duns.github.com/maven-snapshots</url>
-          <releases>
-            <enabled>false</enabled>
-          </releases>
-        </repository>
-      </repositories>
-      <pluginRepositories>
-        <pluginRepository>
-          <id>freehep</id>
-          <url>http://java.freehep.org/maven2</url>
-          <snapshots>
-            <enabled>false</enabled>
-          </snapshots>
-        </pluginRepository>
-        <pluginRepository>
-          <id>freehep</id>
-          <url>http://duns.github.com/maven-snapshots</url>
-          <releases>
-            <enabled>false</enabled>
-          </releases>
-        </pluginRepository>
-      </pluginRepositories>
+      <id>libusb</id>
+      <modules>
+        <module>libusb</module>
+      </modules>
     </profile>
   </profiles>
   <modules>
+    <!--
     <module>ftdi</module>
+    -->
     <module>javax.usb</module>
     <module>javax.usb-extra</module>
     <module>javalibusb1</module>

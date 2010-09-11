@@ -1,6 +1,5 @@
 package no.hackaton.usbtools;
 
-import javalibusb1.*;
 import static javax.usb.extra.ExtraUsbUtil.*;
 
 import javax.usb.*;

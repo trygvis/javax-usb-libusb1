@@ -15,6 +15,7 @@
       <groupId>no.hackaton</groupId>
       <artifactId>javalibusb1</artifactId>
       <version>${project.version}</version>
+      <type>nar</type>
     </dependency>
     <dependency>
       <groupId>no.hackaton</groupId>
@@ -37,9 +38,9 @@
         </configuration>
       </plugin>
       <plugin>
-        <groupId>org.freehep</groupId>
-        <artifactId>freehep-nar-plugin</artifactId>
+        <artifactId>maven-nar-plugin</artifactId>
         <extensions>true</extensions>
+        <!--
         <executions>
           <execution>
             <goals>
@@ -52,6 +53,7 @@
             </configuration>
           </execution>
         </executions>
+        -->
       </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>

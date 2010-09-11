@@ -2,7 +2,7 @@ package no.hackaton.usbtools;
 
 import static java.lang.Thread.sleep;
 import static java.util.Arrays.*;
-import javalibusb1.*;
+//import javalibusb1.Libusb1UsbServices;
 import static javax.usb.extra.ExtraUsbUtil.*;
 import static javax.usb.util.UsbUtil.*;
 import static no.hackaton.usbtools.Fx2Device.*;
@@ -17,7 +17,7 @@ import java.util.*;
 
 public class Fx2Programmer {
     public static void main(String[] a) throws Exception {
-        System.setProperty(Libusb1UsbServices.JAVAX_USB_LIBUSB_TRACE_PROPERTY, "true");
+//        System.setProperty(Libusb1UsbServices.JAVAX_USB_LIBUSB_TRACE_PROPERTY, "true");
         UsbServices usbServices = UsbHostManager.getUsbServices();
         UsbHub hub = usbServices.getRootUsbHub();
 
