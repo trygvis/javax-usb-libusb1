@@ -25,10 +25,23 @@
   <build>
     <plugins>
       <plugin>
-        <!--
-        <groupId>org.freehep</groupId>
-        <artifactId>freehep-nar-plugin</artifactId>
-        -->
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <rules>
+            <requireProperty>
+              <property>libusb.home</property>
+            </requireProperty>
+          </rules>
+        </configuration>
+      </plugin>
+      <plugin>
         <artifactId>maven-nar-plugin</artifactId>
         <version>2.1-SNAPSHOT</version>
         <extensions>true</extensions>
@@ -41,18 +54,7 @@
             </library>
           </libraries>
           <c>
-            <!--
-            This is a copy of i386.MacOSX.g++.cpp.options without -Wconversion.
-            For some reason -Wconversion adds a lot of warnings from libusb.
-            -->
-            <options>
-              <options>-Wall</options>
-              <options>-Wno-long-long</options>
-              <options>-Wpointer-arith</options>
-              <options>-fPIC</options>
-              <options>-g</options>
-              <options>-m64</options>
-            </options>
+            <optionSet>${nar.optionSet.c}</optionSet>
             <clearDefaultOptions>true</clearDefaultOptions>
             <includePaths>
               <includePath>${includePath.libusb}</includePath>
@@ -60,9 +62,7 @@
             </includePaths>
           </c>
           <linker>
-            <options>
-              <option>-m64</option>
-            </options>
+            <optionSet>${nar.optionSet.linker}</optionSet>
             <clearDefaultOptions>true</clearDefaultOptions>
             <libs>
               <lib>
@@ -75,4 +75,36 @@
       </plugin>
     </plugins>
   </build>
+  <!--
+  This is a copy of i386.MacOSX.g++.cpp.options without -Wconversion.
+  For some reason -Wconversion adds a lot of warnings from libusb.
+  -->
+  <profiles>
+    <profile>
+      <id>MacOSX.64bit</id>
+      <activation>
+        <os>
+          <name>mac os x</name>
+          <arch>x86_64</arch>
+        </os>
+      </activation>
+      <properties>
+        <nar.optionSet.c>-Wall -Wno-long-long -Wpointer-arith -fPIC -g -m64</nar.optionSet.c>
+        <nar.optionSet.linker>-m64</nar.optionSet.linker>
+      </properties>
+    </profile>
+    <profile>
+      <id>MacOSX.32bit</id>
+      <activation>
+        <os>
+          <name>mac os x</name>
+          <arch>i386</arch>
+        </os>
+      </activation>
+      <properties>
+        <nar.optionSet.c>-Wall -Wno-long-long -Wpointer-arith -fPIC -g</nar.optionSet.c>
+        <nar.optionSet.linker/>
+      </properties>
+    </profile>
+  </profiles>
 </project>

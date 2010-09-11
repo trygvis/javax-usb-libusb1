@@ -8,9 +8,7 @@
     <artifactId>javax-usb-libusb1</artifactId>
     <version>1.0.1-1-SNAPSHOT</version>
   </parent>
-
   <artifactId>ftdi</artifactId>
-
   <dependencies>
     <dependency>
       <groupId>no.hackaton</groupId>
@@ -22,12 +20,5 @@
       <artifactId>javalibusb1</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.7</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
-
 </project>
