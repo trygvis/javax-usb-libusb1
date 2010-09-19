@@ -1,7 +1,7 @@
-package no.hackaton.usbtools;
+package no.hackaton.usb.tools;
 
 import static java.lang.Integer.*;
-import static no.hackaton.usbtools.IntelHex.RecordType.*;
+import static no.hackaton.usb.tools.IntelHex.RecordType.*;
 
 import javax.usb.util.*;
 import java.io.*;

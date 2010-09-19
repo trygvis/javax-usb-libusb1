@@ -1,8 +1,6 @@
-package no.hackaton.ftdi;
+package no.hackaton.usb.ftdi;
 
 import static java.lang.Thread.sleep;
-
-import javax.usb.*;
 
 public class ToggleDtr {
     public static void main(String[] args) throws Exception {

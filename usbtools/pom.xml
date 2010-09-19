@@ -4,30 +4,22 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>no.hackaton</groupId>
+    <groupId>no.hackaton.usb</groupId>
     <artifactId>javax-usb-libusb1</artifactId>
     <version>1.0.1-1-SNAPSHOT</version>
   </parent>
   <artifactId>usbtools</artifactId>
+  <name>Javalibusb1 :: Misc USB tools</name>
   <packaging>nar</packaging>
   <dependencies>
     <dependency>
-      <groupId>no.hackaton</groupId>
+      <groupId>no.hackaton.usb</groupId>
       <artifactId>javalibusb1</artifactId>
       <version>${project.version}</version>
       <type>nar</type>
     </dependency>
-    <!--
     <dependency>
-      <groupId>no.hackaton</groupId>
-      <artifactId>javalibusb1</artifactId>
-      <version>${project.version}</version>
-      <type>nar</type>
-      <classifier>i386-Linux-gpp-jni</classifier>
-    </dependency>
-    -->
-    <dependency>
-      <groupId>no.hackaton</groupId>
+      <groupId>no.hackaton.usb</groupId>
       <artifactId>javax.usb-extra</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -54,6 +46,7 @@
             <!--
             <configuration>
               <classifiers>
+                <classifier>i386-Linux-gpp-jni</classifier>
                 <classifier>i386-MacOSX-gpp-jni</classifier>
                 <classifier>x86_64-MacOSX-gpp-jni</classifier>
               </classifiers>
@@ -102,11 +95,11 @@
           <programs>
             <program>
               <name>lsusb</name>
-              <mainClass>no.hackaton.usbtools.lsusb</mainClass>
+              <mainClass>no.hackaton.usb.tools.lsusb</mainClass>
             </program>
             <program>
               <name>fx2programmer</name>
-              <mainClass>no.hackaton.usbtools.Fx2Programmer</mainClass>
+              <mainClass>no.hackaton.usb.tools.Fx2Programmer</mainClass>
             </program>
           </programs>
         </configuration>

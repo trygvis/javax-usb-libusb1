@@ -1,4 +1,4 @@
-package no.hackaton.usbtools;
+package no.hackaton.usb.tools;
 
 import org.junit.*;
 

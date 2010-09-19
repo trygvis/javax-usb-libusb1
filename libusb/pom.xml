@@ -1,31 +1,12 @@
 <project>
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>no.hackaton</groupId>
+    <groupId>no.hackaton.usb</groupId>
     <artifactId>javax-usb-libusb1</artifactId>
     <version>1.0.1-1-SNAPSHOT</version>
   </parent>
   <artifactId>libusb</artifactId>
-  <!--
-  <packaging>nar</packaging>
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-nar-plugin</artifactId>
-        <extensions>true</extensions>
-        <configuration>
-          <libraries>
-            <library>
-              <linkCPP>false</linkCPP>
-            </library>
-          </libraries>
-          <gnuSourceDirectory>libusb</gnuSourceDirectory>
-          <gnuConfigureArgs>CFLAGS=${libusb.cflags} - -enable-maintainer-mode - -enable-debug-log - -enable-examples-build</gnuConfigureArgs>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-  -->
+  <name>Javalibusb1 :: libusb</name>
   <packaging>pom</packaging>
   <build>
   </build>
@@ -40,7 +21,24 @@
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>exec-maven-plugin</artifactId>
+            <!--
+            autogen.sh runs ./configure, but includes extra arguments
+            (enable-maintainer-mode, enable-debug-log, enable-examples-build)
+            which we don't want.
+            -->
             <executions>
+              <execution>
+                <id>libusb-autogen</id>
+                <phase>validate</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <workingDirectory>../libusb-git</workingDirectory>
+                  <executable>bash</executable>
+                  <commandlineArgs>-c "CFLAGS='${libusb.cflags}' ./autogen.sh"</commandlineArgs>
+                </configuration>
+              </execution>
               <execution>
                 <id>libusb-configure</id>
                 <phase>validate</phase>
@@ -50,7 +48,7 @@
                 <configuration>
                   <workingDirectory>../libusb-git</workingDirectory>
                   <executable>bash</executable>
-                  <commandlineArgs>-c "CFLAGS='${libusb.cflags}' ./autogen.sh --prefix=${libusb.home}"</commandlineArgs>
+                  <commandlineArgs>-c "CFLAGS='${libusb.cflags}' ./configure --prefix=${libusb.home}"</commandlineArgs>
                 </configuration>
               </execution>
             </executions>

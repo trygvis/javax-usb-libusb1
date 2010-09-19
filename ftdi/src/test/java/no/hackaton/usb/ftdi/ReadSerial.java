@@ -1,6 +1,4 @@
-package no.hackaton.ftdi;
-
-import javax.usb.*;
+package no.hackaton.usb.ftdi;
 
 public class ReadSerial {
     public static void main(String[] args) throws Exception {

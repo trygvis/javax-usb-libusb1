@@ -1,8 +1,9 @@
 <project>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>no.hackaton</groupId>
+  <groupId>no.hackaton.usb</groupId>
   <artifactId>javax-usb-libusb1</artifactId>
   <version>1.0.1-1-SNAPSHOT</version>
+  <name>Javalibusb1</name>
   <packaging>pom</packaging>
   <dependencies>
     <dependency>

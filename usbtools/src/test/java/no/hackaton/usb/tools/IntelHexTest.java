@@ -1,10 +1,9 @@
-package no.hackaton.usbtools;
+package no.hackaton.usb.tools;
 
 import static javax.usb.util.UsbUtil.*;
-import no.hackaton.usbtools.IntelHex.*;
-import static no.hackaton.usbtools.IntelHex.RecordType.*;
-import static no.hackaton.usbtools.IntelHex.createLine;
-import org.apache.commons.io.*;
+import no.hackaton.usb.tools.IntelHex.*;
+import static no.hackaton.usb.tools.IntelHex.RecordType.*;
+import static no.hackaton.usb.tools.IntelHex.createLine;
 import static org.junit.Assert.*;
 import org.junit.*;
 

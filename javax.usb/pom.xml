@@ -1,10 +1,11 @@
 <project>
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>no.hackaton</groupId>
+    <groupId>no.hackaton.usb</groupId>
     <artifactId>javax-usb-libusb1</artifactId>
     <version>1.0.1-1-SNAPSHOT</version>
   </parent>
   <artifactId>javax.usb</artifactId>
+  <name>Javalibusb1 :: javax.usb API implementation</name>
   <!-- TODO: Add retrotranslation of the jar file to be 1.4 compatible -->
 </project>

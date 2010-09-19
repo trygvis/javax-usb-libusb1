@@ -4,17 +4,24 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>no.hackaton</groupId>
+    <groupId>no.hackaton.usb</groupId>
     <artifactId>javax-usb-libusb1</artifactId>
     <version>1.0.1-1-SNAPSHOT</version>
   </parent>
   <artifactId>javalibusb1</artifactId>
+  <name>Javalibusb1 :: Implementation</name>
   <packaging>nar</packaging>
   <dependencies>
     <dependency>
-      <groupId>no.hackaton</groupId>
+      <groupId>no.hackaton.usb</groupId>
       <artifactId>javax.usb</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>no.hackaton.usb</groupId>
+      <artifactId>libusb</artifactId>
+      <version>${project.version}</version>
+      <type>pom</type>
     </dependency>
   </dependencies>
   <properties>
@@ -107,7 +114,7 @@
       </properties>
     </profile>
     <profile>
-      <id>MacOSX.64bit</id>
+      <id>x86_64-MacOSX-gpp</id>
       <activation>
         <os>
           <name>mac os x</name>
@@ -120,7 +127,7 @@
       </properties>
     </profile>
     <profile>
-      <id>MacOSX.32bit</id>
+      <id>i386-MacOSX-gpp</id>
       <activation>
         <os>
           <name>mac os x</name>
