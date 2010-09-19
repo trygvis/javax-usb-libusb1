@@ -48,10 +48,36 @@
             <libs>
               <lib>
                 <name>usb-1.0</name>
+                <type>static</type>
                 <directory>${libDirectory.libusb}</directory>
               </lib>
             </libs>
           </linker>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <rules>
+            <!-- 
+            If you're missing these properties your platform is not supported.
+            To add support for your platform create a profile that's activated
+            on your platform.
+            -->
+            <requireProperty>
+              <property>nar.optionSet.c</property>
+            </requireProperty>
+            <requireProperty>
+              <property>nar.optionSet.linker</property>
+            </requireProperty>
+          </rules>
         </configuration>
       </plugin>
     </plugins>
@@ -61,6 +87,25 @@
   For some reason -Wconversion adds a lot of warnings from libusb.
   -->
   <profiles>
+    <profile>
+      <id>i386-Linux-gpp</id>
+      <activation>
+        <os>
+          <name>linux</name>
+          <arch>i386</arch>
+        </os>
+      </activation>
+      <properties>
+        <!--
+        -m32 seems to be required on 64bit platforms when building 32bit apps
+        -lrt was required as libusb uses librt.so but when libusb is
+        statically linked into the application this .so reference is not
+        included.
+        -->
+        <nar.optionSet.c>-Wall -Wno-long-long -Wpointer-arith -fPIC -g -m32</nar.optionSet.c>
+        <nar.optionSet.linker>-m32 -lrt</nar.optionSet.linker>
+      </properties>
+    </profile>
     <profile>
       <id>MacOSX.64bit</id>
       <activation>

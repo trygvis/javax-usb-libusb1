@@ -1,7 +1,10 @@
 package javalibusb1;
 
+import static javalibusb1.Libusb1UsbServices.*;
+
 import javax.usb.*;
 import java.io.*;
+import java.net.*;
 import java.util.*;
 
 class libusb1 implements Closeable {
@@ -22,7 +25,7 @@ class libusb1 implements Closeable {
         List<UsbDevice> devices = new ArrayList<UsbDevice>();
 
         for (Libusb1UsbDevice device : get_devices(libusb_context_ptr)) {
-            if(device != null) {
+            if (device != null) {
                 devices.add(device);
             }
         }
@@ -72,6 +75,108 @@ class libusb1 implements Closeable {
     public static int interrupt_transfer(long libusb_device_handle, byte bEndpointAddress, byte[] buffer, int offest, int length, long timeout);
 
     static {
-        NarSystem.loadLibrary();
+        String path = System.getProperty(JAVAX_USB_LIBUSB_JAVALIBUSB1_PATH);
+        String aol = getAol();
+
+        if (path != null && loadFromPath(path)) {
+        } else if (aol != null && loadLibraryFromAol(aol)) {
+        } else {
+            // Couldn't find an AOL for this platform, fall back to the default of using System.loadLibrary.
+            NarSystem.loadLibrary();
+        }
+    }
+
+    private static boolean loadFromPath(String path) {
+        try {
+            System.load(path);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private static boolean loadLibraryFromAol(String aol) {
+        String name = System.mapLibraryName("javalibusb1-1.0.1-1-SNAPSHOT");
+
+        String p = "lib/" + aol + "/jni/" + name;
+
+        System.out.println("p=" + p);
+
+        URL url = libusb1.class.getClassLoader().getResource(p);
+        System.out.println("url = " + url);
+
+        if (url == null) {
+            return false;
+        }
+
+        File file = null;
+
+        // TODO: only copy the file if it is not a file
+
+        OutputStream os = null;
+        InputStream is = null;
+        try {
+            file = File.createTempFile("javalibusb1", "");
+            System.out.println("file = " + file);
+
+            is = url.openStream();
+            os = new FileOutputStream(file);
+
+            file.deleteOnExit();
+
+            byte buffer[] = new byte[128 * 1024];
+
+            int read = is.read(buffer);
+
+            while (read > 0) {
+                os.write(buffer, 0, read);
+                read = is.read(buffer);
+            }
+
+            closeSilently(os);
+            closeSilently(is);
+
+            System.load(file.getAbsolutePath());
+
+            return true;
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to load native library.", e);
+        } finally {
+            if(file != null) {
+                file.delete();
+            }
+            closeSilently(os);
+            closeSilently(is);
+        }
+    }
+
+    private static void closeSilently(Closeable closeable) {
+        if (closeable == null) {
+            return;
+        }
+        try {
+            closeable.close();
+        } catch (IOException e) {
+            // ignore
+        }
+    }
+
+    public static String getAol() {
+        String osArch = System.getProperty("os.arch");
+
+        String osName = System.getProperty("os.name");
+
+        System.out.println("osName = " + osName);
+        if (osName.equals("Mac OS X")) {
+            osName = "MacOSX";
+        } else if (osName.equals("Linux")) {
+            osName = "Linux";
+        } else {
+            return null; // unsupported os.name
+        }
+
+        String linker = "gpp";
+
+        return osArch + "-" + osName + "-" + linker;
     }
 }

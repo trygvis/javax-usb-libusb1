@@ -17,6 +17,15 @@
       <version>${project.version}</version>
       <type>nar</type>
     </dependency>
+    <!--
+    <dependency>
+      <groupId>no.hackaton</groupId>
+      <artifactId>javalibusb1</artifactId>
+      <version>${project.version}</version>
+      <type>nar</type>
+      <classifier>i386-Linux-gpp-jni</classifier>
+    </dependency>
+    -->
     <dependency>
       <groupId>no.hackaton</groupId>
       <artifactId>javax.usb-extra</artifactId>
@@ -39,21 +48,19 @@
       </plugin>
       <plugin>
         <artifactId>maven-nar-plugin</artifactId>
-        <extensions>true</extensions>
-        <!--
         <executions>
           <execution>
-            <goals>
-              <goal>nar-assembly</goal>
-            </goals>
+            <id>default-nar-unpack</id>
+            <!--
             <configuration>
               <classifiers>
-                <classifier>i386-MacOSX-g++-jni</classifier>
+                <classifier>i386-MacOSX-gpp-jni</classifier>
+                <classifier>x86_64-MacOSX-gpp-jni</classifier>
               </classifiers>
             </configuration>
+            -->
           </execution>
         </executions>
-        -->
       </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
@@ -69,8 +76,13 @@
         </executions>
         <configuration>
           <descriptors>
-            <descriptor>src/main/assembly/i386-MacOSX-g++.xml</descriptor>
+            <descriptor>src/main/assembly/all.xml</descriptor>
+            <!--
+            <descriptor>src/main/assembly/i386-MacOSX-gpp.xml</descriptor>
+            <descriptor>src/main/assembly/x86_64-MacOSX-gpp.xml</descriptor>
+            -->
           </descriptors>
+          <tarLongFileMode>gnu</tarLongFileMode>
         </configuration>
       </plugin>
       <plugin>
@@ -85,7 +97,8 @@
           </execution>
         </executions>
         <configuration>
-          <extraJvmArguments>-Djava.library.path="$BASEDIR"/lib</extraJvmArguments>
+          <includeConfigurationDirectoryInClasspath>true</includeConfigurationDirectoryInClasspath>
+          <configurationDirectory>lib</configurationDirectory>
           <programs>
             <program>
               <name>lsusb</name>
@@ -100,4 +113,7 @@
       </plugin>
     </plugins>
   </build>
+  <properties>
+    <localRepository>${user.home}/.m2/repository</localRepository>
+  </properties>
 </project>

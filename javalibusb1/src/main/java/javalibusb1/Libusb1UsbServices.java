@@ -14,6 +14,11 @@ public class Libusb1UsbServices implements UsbServices {
     public static final String JAVAX_USB_LIBUSB_TRACE_PROPERTY = "javax.usb.libusb.trace";
     public static final String JAVAX_USB_LIBUSB_DEBUG_PROPERTY = "javax.usb.libusb.debug";
 
+    /**
+     * The path to the shared library that the implementation will use.
+     */
+    public static final String JAVAX_USB_LIBUSB_JAVALIBUSB1_PATH = "javax.usb.libusb.javalibusb1.path";
+
     UsbDeviceDescriptor rootUsbDeviceDescriptorInstance = new DefaultUsbDeviceDescriptor(
         (short) 0x0200,         // USB 2.0
         HUB_CLASSCODE,
@@ -32,6 +37,9 @@ public class Libusb1UsbServices implements UsbServices {
     private List<UsbDevice> devices;
 
     public Libusb1UsbServices() throws UsbException {
+        // TODO: Parse the debug settings for the native code before loading
+        // the library so that the libusb_set_trace and usbw debugging is
+        // enabled as soon as possible.
         libusb = libusb1.create();
 
         boolean trace = false;

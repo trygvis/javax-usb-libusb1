@@ -1,0 +1,63 @@
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0 http://maven.apache.org/xsd/assembly-1.1.0.xsd">
+  <id>all</id>
+  <formats>
+    <format>tar.gz</format>
+  </formats>
+  <!--
+  <dependencySets>
+    <dependencySet>
+      <outputDirectory>lib</outputDirectory>
+      <useProjectArtifact>true</useProjectArtifact>
+    </dependencySet>
+  </dependencySets>
+  -->
+  <fileSets>
+    <fileSet>
+      <directory>target/appassembler/bin</directory>
+      <outputDirectory>/bin</outputDirectory>
+      <fileMode>0755</fileMode>
+    </fileSet>
+    <fileSet>
+      <directory>target/appassembler/repo</directory>
+      <outputDirectory>/repo</outputDirectory>
+    </fileSet>
+    <!--
+    This would have been the optimal solution if the appassembler plugin
+    would be able to pick up the extra files under lib/.
+    <fileSet>
+      <directory>${localRepository}/no/hackaton/javalibusb1/${project.version}</directory>
+      <outputDirectory>lib</outputDirectory>
+      <includes>
+        <include>*-jni.nar</include>
+      </includes>
+    </fileSet>
+    -->
+    <!--
+    This file set matches all platform that's supported, but only the classifiers
+    actually unpacked by nar:nar-unpack will be on disk and included.
+    -->
+    <fileSet>
+      <directory>target/nar/javalibusb1-${project.version}-i386-Linux-gpp-jni</directory>
+      <outputDirectory>lib</outputDirectory>
+      <includes>
+        <include>**/*.so</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>target/nar/javalibusb1-${project.version}-i386-MacOSX-gpp-jni</directory>
+      <outputDirectory>lib</outputDirectory>
+      <includes>
+        <include>**/*.jnilib</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>target/nar/javalibusb1-${project.version}-x86_64-MacOSX-gpp-jni</directory>
+      <outputDirectory>lib</outputDirectory>
+      <includes>
+        <include>**/*.jnilib</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+</assembly>

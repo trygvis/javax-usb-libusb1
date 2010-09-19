@@ -23,30 +23,72 @@ system property "javax.usb.libusb.trace" to true
 
 >     -Djavax.usb.libusb.trace=true`
 
-Notes on Building
------------------
+### Building
 
-To build this software you need:
+To build the main software a `mvn install` will be sufficient.
 
-  * A working SDCC installation in your PATH that supports the "mcs51"
-    target.  I'm using v2.9.0.
+If you want to make life easy for you, you want build and use the libusb
+referenced from as a git module too. To do that simply run
+`(cd libusb; mvn install)`. Like with the javalibusb1 library, the build is
+set to build 64-bit versions if the JVM is running in 64-bit mode.
 
-  * My libusb repository to get the required libusb_get_speed methods.
-    You can get it with this command:
+If you do not use the referenced libusb module, you have to build it manually and
+point libusb.home to it.
 
-        git clone git://git.libusb.org/libusb-trygvis.git
+Example settings.xml:
 
-    Online repository: http://git.libusb.org/?p=libusb-trygvis.git;a=summary
+    <settings>
+      <profiles>
+        <profile>
+          <id>libusb-32</id>
+          <activation>
+            <os>
+              <arch>i386</arch>
+            </os>
+          </activation>
+          <properties>
+            <libusb.home>${user.home}/opt/libusb-git-32</libusb.home>
+            <libusb.cflags>-m32</libusb.cflags>
+          </properties>
+        </profile>
+        <profile>
+          <id>libusb-64</id>
+          <activation>
+            <os>
+              <arch>x86_64</arch>
+            </os>
+          </activation>
+          <properties>
+            <libusb.home>${user.home}/opt/libusb-git-64</libusb.home>
+            <libusb.cflags>-m64</libusb.cflags>
+          </properties>
+        </profile>
+      </profiles>
+    </settings>
+
+### Building 64-Bit Versions
+
+The Maven setup will automatically build 64-bit versions of libusb *and*
+javalibusb1 if you are using a 64-bit JVM. Run your Maven with -d64 to run a
+64-bit JVM.
+
+Notes on Keeping Syncronized with Upstream
+------------------------------------------
 
 This is the command used to create and synchronize the upstream CVS repositories:
 
 >     git cvsimport -d :pserver:anonymous@javax-usb.cvs.sourceforge.net:/cvsroot/javax-usb javax-usb
 
-### Building 64-Bit Versions
+Notes on Building the TCK
+-------------------------
 
-To build a 64-bit version of the libraries and tools add BITS=64 to the make command:
+This section has slowly bit rotted after no-one could document the required USB setup
+for the firmware. Will have to invent/run my own TCK to prove compliance.
 
->     make -C javalibusb1 clean all BITS=64^
+To build this software you need:
+
+  * For the TCK: A working SDCC installation in your PATH that supports
+    the "mcs51" target. I'm using v2.9.0.
 
 ### The Firmware
 
@@ -113,9 +155,5 @@ To load the firmware:
 
 Notes
 =====
-
-Understand this firmware:
-http://github.com/Dopi/JetKernel/blob/fe56cc9237ef9409e25fefca446b277263879c5e/firmware/keyspan_pda/keyspan_pda.S
-Investigate autovectoring.
 
 [fx2lib]: http://github.com/mulicheng/fx2lib "fx2lib"
