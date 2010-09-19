@@ -100,8 +100,6 @@ class libusb1 implements Closeable {
 
         String p = "lib/" + aol + "/jni/" + name;
 
-        System.out.println("p=" + p);
-
         URL url = libusb1.class.getClassLoader().getResource(p);
         System.out.println("url = " + url);
 
@@ -109,9 +107,12 @@ class libusb1 implements Closeable {
             return false;
         }
 
-        File file = null;
+        File file = new File(url.getPath());
 
-        // TODO: only copy the file if it is not a file
+        if(file.canRead()) {
+            System.load(file.getAbsolutePath());
+            return true;
+        }
 
         OutputStream os = null;
         InputStream is = null;
