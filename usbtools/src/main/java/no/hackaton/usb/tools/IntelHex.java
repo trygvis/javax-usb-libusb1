@@ -39,12 +39,28 @@ public class IntelHex {
     }
 
     public static enum RecordType {
-        DATA,
-        END_OF_FILE,
-        EXTENDED_SEGMENT_ADDRESS_RECORD,
-        START_SEGMENT_ADDRESS_RECORD,
-        EXTENDED_LINEAR_ADDRESS_RECORD,
-        START_LINEAR_ADDRESS_RECORD
+        DATA(0),
+        END_OF_FILE(1);
+        //EXTENDED_SEGMENT_ADDRESS_RECORD,
+        //START_SEGMENT_ADDRESS_RECORD,
+        //EXTENDED_LINEAR_ADDRESS_RECORD,
+        //START_LINEAR_ADDRESS_RECORD;
+
+        byte id;
+
+        RecordType(int id) {
+            this.id = (byte)id;
+        }
+
+        public static RecordType lookup(int i) throws IOException {
+            for (RecordType recordType : values()) {
+                if (recordType.id == i) {
+                    return recordType;
+                }
+            }
+
+            throw new IOException("Unknown record type: " + i + ".");
+        }
     }
 
     public static class IntelHexPacket {
@@ -62,17 +78,8 @@ public class IntelHex {
     }
 
     public static String createLine(RecordType recordType, int address, byte[] data) {
-        byte r;
-
-        switch (recordType) {
-            case DATA:
-                r = 0;
-                break;
-            case END_OF_FILE:
-                r = 4;
-                break;
-            default:
-                throw new RuntimeException("Un-supported record type: " + recordType + ".");
+        if(recordType != DATA && recordType != END_OF_FILE) {
+            throw new RuntimeException("Un-supported record type: " + recordType + ".");
         }
 
         StringBuilder builder = new StringBuilder(9 + data.length * 2);
@@ -80,9 +87,9 @@ public class IntelHex {
             .append(UsbUtil.toHexString((byte) data.length))
             .append(UsbUtil.toHexString((short) address))
             .append('0')
-            .append(r);
+            .append(recordType.id);
 
-        int checksum = (byte) data.length + (short) address + r;
+        int checksum = (byte) data.length + (short) address + recordType.id;
 
         for (byte b : data) {
             builder.append(UsbUtil.toHexString(b));
@@ -101,13 +108,15 @@ public class IntelHex {
         char startCode = line.charAt(0);
         int count = parseInt(line.substring(1, 3), 16);
         int address = parseInt(line.substring(3, 7), 16);
-        int recordType = parseInt(line.substring(7, 9), 16);
+        int r = parseInt(line.substring(7, 9), 16);
 
         if (startCode != ':') {
             throw new IOException("line " + lineNo + ": The first character must be ':'.");
         }
 
-        if (recordType == 0) {
+        RecordType recordType = lookup(r);
+
+        if (recordType == DATA) {
             int expectedLineLength = 9 + count * 2 + 2;
             if (line.length() != expectedLineLength) {
                 throw new IOException("line " + lineNo + ": Expected line to be " + expectedLineLength + " characters, was " + line.length() + ".");
@@ -121,9 +130,12 @@ public class IntelHex {
                 x += 2;
             }
 
-            return new IntelHexPacket(lineNo, DATA, address, data);
+            return new IntelHexPacket(lineNo, recordType, address, data);
+        }
+        else if(recordType == END_OF_FILE) {
+            return new IntelHexPacket(lineNo, recordType, address, new byte[0]);
         }
 
-        throw new IOException("line " + lineNo + ": Unknown record type: 0x" + Long.toHexString(recordType) + ".");
+        throw new IOException("line " + lineNo + ": Unknown record type: 0x" + Long.toHexString(r) + ".");
     }
 }

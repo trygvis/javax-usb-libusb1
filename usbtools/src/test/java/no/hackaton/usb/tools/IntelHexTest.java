@@ -13,9 +13,9 @@ import java.util.*;
 public class IntelHexTest {
     @Test
     public void testCreateLine() {
-        assertEquals(":040000000201BB320C", createLine(DATA, 0, new byte[]{0x02, 0x01, (byte)0xbb, 0x32}));
+        assertEquals(":040000000201BB320C", createLine(DATA, 0, new byte[]{0x02, 0x01, (byte) 0xbb, 0x32}));
     }
-    
+
     @Test
     public void testParseLine() throws Exception {
         IntelHexPacket hexPacket = IntelHex.parseLine(1, ":040000000201BB320C");
@@ -31,6 +31,16 @@ public class IntelHexTest {
     }
 
     @Test
+    public void testParseEOFLine() throws Exception {
+        IntelHexPacket hexPacket = IntelHex.parseLine(2, ":00000001FF");
+        assertNotNull(hexPacket);
+        assertEquals(3, hexPacket.lineNo);
+        assertEquals(END_OF_FILE, hexPacket.recordType);
+        assertEquals(0x0000, hexPacket.address);
+        assertEquals(0, hexPacket.data.length);
+    }
+
+    @Test
     public void testParseFile() throws Exception {
         ByteArrayInputStream reader = new ByteArrayInputStream((":040000000201BB320C\n" +
             ":01000B0032C2").getBytes("ascii"));
@@ -40,7 +50,7 @@ public class IntelHexTest {
         assertEquals(1, packet0.lineNo);
         assertEquals(RecordType.DATA, packet0.recordType);
         assertEquals(0, packet0.address);
-        assertArrayEquals(new byte[]{0x02, 0x01, (byte)0xbb, 0x32}, packet0.data);
+        assertArrayEquals(new byte[]{0x02, 0x01, (byte) 0xbb, 0x32}, packet0.data);
 
         assertEquals(2, packet1.lineNo);
         assertEquals(RecordType.DATA, packet1.recordType);

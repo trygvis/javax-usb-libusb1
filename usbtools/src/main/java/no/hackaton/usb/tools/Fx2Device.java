@@ -1,6 +1,6 @@
 package no.hackaton.usb.tools;
 
-import static java.lang.Long.*;
+import static javax.usb.util.UsbUtil.*;
 
 import javax.usb.*;
 import javax.usb.extra.*;
@@ -28,6 +28,10 @@ public class Fx2Device implements Closeable {
     }
 
     public Fx2Device(UsbDevice device/*, UsbInterface usbInterface*/) {
+        if (device == null) {
+            throw new NullPointerException("device");
+        }
+
         this.device = device;
     }
 
@@ -41,6 +45,7 @@ public class Fx2Device implements Closeable {
     }
 
     public void releaseReset() throws UsbException {
+        System.err.println("Fx2Device.releaseReset");
         // TODO: Read the value first before manipulating the value
         write(CPUCS, new byte[]{0x00});
     }
@@ -50,7 +55,7 @@ public class Fx2Device implements Closeable {
     }
 
     public void write(int address, byte[] bytes, int offset, int length) throws UsbException {
-        System.err.println("Fx2Device.write: address=" + toHexString(address) + ", bytes=" + bytes.length);
+        System.err.println("Fx2Device.write: address=" + toHexString((short)address) + ", bytes=" + bytes.length);
         byte bmRequestType = 0x40; // Vendor request, IN
         byte bRequest = (byte) 0xa0;
         short wValue = (short) address;
