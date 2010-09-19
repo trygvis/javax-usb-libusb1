@@ -286,7 +286,7 @@ JNIEXPORT void JNICALL Java_javalibusb1_libusb1_set_1trace_1calls
  * implementation) and just iterate that on close().
  */
 JNIEXPORT jobject JNICALL Java_javalibusb1_libusb1_create
-  (JNIEnv *env, jclass klass)
+  (JNIEnv *env, jclass klass, jint debug_level)
 {
     struct libusb_context *context;
 
@@ -295,6 +295,8 @@ JNIEXPORT jobject JNICALL Java_javalibusb1_libusb1_create
         throwPlatformException(env, "Unable to initialize libusb.");
         goto fail;
     }
+
+    usbw_set_debug(context, debug_level);
 
     /* Initalization, Phase II */
     // TODO: Create some macros to do the lookups

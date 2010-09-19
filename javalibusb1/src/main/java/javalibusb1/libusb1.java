@@ -1,6 +1,7 @@
 package javalibusb1;
 
 import static javalibusb1.Libusb1UsbServices.*;
+import static javalibusb1.Libusb1Utils.*;
 
 import javax.usb.*;
 import java.io.*;
@@ -48,7 +49,7 @@ class libusb1 implements Closeable {
      * <tt>struct libusb_context*</tt>.
      */
     native
-    public static libusb1 create();
+    public static libusb1 create(int debug_level);
 
     native
     public void close(long libusb_context);
@@ -75,7 +76,7 @@ class libusb1 implements Closeable {
     public static int interrupt_transfer(long libusb_device_handle, byte bEndpointAddress, byte[] buffer, int offest, int length, long timeout);
 
     static {
-        String path = System.getProperty(JAVAX_USB_LIBUSB_JAVALIBUSB1_PATH);
+        String path = loadProperty(JAVAX_USB_LIBUSB_JAVALIBUSB1_PATH_PROPERTY, JAVAX_USB_LIBUSB_JAVALIBUSB1_PATH_ENV);
         String aol = getAol();
 
         if (path != null && loadFromPath(path)) {
@@ -96,7 +97,7 @@ class libusb1 implements Closeable {
     }
 
     private static boolean loadLibraryFromAol(String aol) {
-        String name = System.mapLibraryName("javalibusb1-1.0.1-1-SNAPSHOT");
+        String name = System.mapLibraryName("javalibusb1-" + VERSION);
 
         String p = "lib/" + aol + "/jni/" + name;
 
@@ -148,17 +149,6 @@ class libusb1 implements Closeable {
             }
             closeSilently(os);
             closeSilently(is);
-        }
-    }
-
-    private static void closeSilently(Closeable closeable) {
-        if (closeable == null) {
-            return;
-        }
-        try {
-            closeable.close();
-        } catch (IOException e) {
-            // ignore
         }
     }
 
