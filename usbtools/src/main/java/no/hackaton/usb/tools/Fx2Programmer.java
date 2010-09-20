@@ -2,7 +2,6 @@ package no.hackaton.usb.tools;
 
 import static java.lang.Thread.sleep;
 import static java.util.Arrays.*;
-//import javalibusb1.Libusb1UsbServices;
 import static javax.usb.extra.ExtraUsbUtil.*;
 import static javax.usb.util.UsbUtil.*;
 import static no.hackaton.usb.tools.Fx2Device.*;

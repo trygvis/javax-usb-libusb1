@@ -28,6 +28,10 @@
           <version>1.0-beta-1</version>
         </plugin>
         <plugin>
+          <artifactId>maven-help-plugin</artifactId>
+          <version>2.1.1</version>
+        </plugin>
+        <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
           <version>2.6</version>
         </plugin>
@@ -61,11 +65,25 @@
         </executions>
         <configuration>
           <rules>
+            <!--
+            If you're missing these properties your platform is not supported.
+            To add support for your platform create a profile that's activated
+            on your platform.
+            -->
             <requireProperty>
               <property>libusb.home</property>
             </requireProperty>
             <requireProperty>
               <property>libusb.cflags</property>
+            </requireProperty>
+            <requireProperty>
+              <property>libusb.configure.args</property>
+            </requireProperty>
+            <requireProperty>
+              <property>nar.optionSet.c</property>
+            </requireProperty>
+            <requireProperty>
+              <property>nar.optionSet.linker</property>
             </requireProperty>
           </rules>
         </configuration>
@@ -83,6 +101,84 @@
       <modules>
         <module>libusb</module>
       </modules>
+    </profile>
+
+    <!--
+    This is a list of platform-specific settings:
+
+    nar.optionSet.c, nar.optionSet.linker: options to the compiler and linker when
+    building the JNI code. They are mainly a copy of the AOL settings for each platform
+    but does not include the -Wconversion flag as it'll result in a lot of warnings
+    that are from the libusb header files.
+
+    libusb.cflags: Flags given to ./configure for libusb
+    -->
+
+    <profile>
+      <id>i386-Linux-gpp</id>
+      <activation>
+        <os>
+          <name>linux</name>
+          <arch>i386</arch>
+        </os>
+      </activation>
+      <properties>
+        <!--
+        -m32 seems to be required on 64bit platforms when building 32bit apps
+        -lrt was required as libusb uses librt.so but when libusb is
+        statically linked into the application this .so reference is not
+        included.
+        -->
+        <nar.optionSet.c>-Wall -Wno-long-long -Wpointer-arith -fPIC -g -m32</nar.optionSet.c>
+        <nar.optionSet.linker>-m32 -lrt</nar.optionSet.linker>
+        <libusb.configure.args/>
+        <libusb.cflags>-m32</libusb.cflags>
+      </properties>
+    </profile>
+    <profile>
+      <id>amd64-Linux-gpp</id>
+      <activation>
+        <os>
+          <name>linux</name>
+          <arch>amd64</arch>
+        </os>
+      </activation>
+      <properties>
+        <nar.optionSet.c>-Wall -Wno-long-long -Wpointer-arith -fPIC -g -m64</nar.optionSet.c>
+        <nar.optionSet.linker>-m64 -lrt</nar.optionSet.linker>
+        <libusb.configure.args>--with-pic</libusb.configure.args>
+        <libusb.cflags>-m64</libusb.cflags>
+      </properties>
+    </profile>
+    <profile>
+      <id>i386-MacOSX-gpp</id>
+      <activation>
+        <os>
+          <name>mac os x</name>
+          <arch>i386</arch>
+        </os>
+      </activation>
+      <properties>
+        <nar.optionSet.c>-Wall -Wno-long-long -Wpointer-arith -fPIC -g</nar.optionSet.c>
+        <nar.optionSet.linker/>
+        <libusb.configure.args/>
+        <libusb.cflags>-m32</libusb.cflags>
+      </properties>
+    </profile>
+    <profile>
+      <id>x86_64-MacOSX-gpp</id>
+      <activation>
+        <os>
+          <name>mac os x</name>
+          <arch>x86_64</arch>
+        </os>
+      </activation>
+      <properties>
+        <nar.optionSet.c>-Wall -Wno-long-long -Wpointer-arith -fPIC -g -m64</nar.optionSet.c>
+        <nar.optionSet.linker>-m64</nar.optionSet.linker>
+        <libusb.configure.args/>
+        <libusb.cflags>-m64</libusb.cflags>
+      </properties>
     </profile>
   </profiles>
   <modules>

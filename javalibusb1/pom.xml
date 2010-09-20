@@ -9,7 +9,7 @@
     <version>1.0.1-1-SNAPSHOT</version>
   </parent>
   <artifactId>javalibusb1</artifactId>
-  <name>Javalibusb1 :: Implementation</name>
+  <name>Javalibusb1 :: Implementation and JNI Wrapper</name>
   <packaging>nar</packaging>
   <dependencies>
     <dependency>
@@ -24,10 +24,6 @@
       <type>pom</type>
     </dependency>
   </dependencies>
-  <properties>
-    <includePath.libusb>${libusb.home}/include/libusb-1.0</includePath.libusb>
-    <libDirectory.libusb>${libusb.home}/lib</libDirectory.libusb>
-  </properties>
   <build>
     <plugins>
       <plugin>
@@ -45,7 +41,7 @@
             <optionSet>${nar.optionSet.c}</optionSet>
             <clearDefaultOptions>true</clearDefaultOptions>
             <includePaths>
-              <includePath>${includePath.libusb}</includePath>
+              <includePath>${libusb.home}/include/libusb-1.0</includePath>
               <includePath>${basedir}/src/main/include</includePath>
             </includePaths>
           </c>
@@ -56,88 +52,12 @@
               <lib>
                 <name>usb-1.0</name>
                 <type>static</type>
-                <directory>${libDirectory.libusb}</directory>
+                <directory>${libusb.home}/lib</directory>
               </lib>
             </libs>
           </linker>
         </configuration>
       </plugin>
-      <plugin>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <executions>
-          <execution>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <rules>
-            <!-- 
-            If you're missing these properties your platform is not supported.
-            To add support for your platform create a profile that's activated
-            on your platform.
-            -->
-            <requireProperty>
-              <property>nar.optionSet.c</property>
-            </requireProperty>
-            <requireProperty>
-              <property>nar.optionSet.linker</property>
-            </requireProperty>
-          </rules>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
-  <!--
-  This is a copy of i386.MacOSX.g++.cpp.options without -Wconversion.
-  For some reason -Wconversion adds a lot of warnings from libusb.
-  -->
-  <profiles>
-    <profile>
-      <id>i386-Linux-gpp</id>
-      <activation>
-        <os>
-          <name>linux</name>
-          <arch>i386</arch>
-        </os>
-      </activation>
-      <properties>
-        <!--
-        -m32 seems to be required on 64bit platforms when building 32bit apps
-        -lrt was required as libusb uses librt.so but when libusb is
-        statically linked into the application this .so reference is not
-        included.
-        -->
-        <nar.optionSet.c>-Wall -Wno-long-long -Wpointer-arith -fPIC -g -m32</nar.optionSet.c>
-        <nar.optionSet.linker>-m32 -lrt</nar.optionSet.linker>
-      </properties>
-    </profile>
-    <profile>
-      <id>x86_64-MacOSX-gpp</id>
-      <activation>
-        <os>
-          <name>mac os x</name>
-          <arch>x86_64</arch>
-        </os>
-      </activation>
-      <properties>
-        <nar.optionSet.c>-Wall -Wno-long-long -Wpointer-arith -fPIC -g -m64</nar.optionSet.c>
-        <nar.optionSet.linker>-m64</nar.optionSet.linker>
-      </properties>
-    </profile>
-    <profile>
-      <id>i386-MacOSX-gpp</id>
-      <activation>
-        <os>
-          <name>mac os x</name>
-          <arch>i386</arch>
-        </os>
-      </activation>
-      <properties>
-        <nar.optionSet.c>-Wall -Wno-long-long -Wpointer-arith -fPIC -g</nar.optionSet.c>
-        <nar.optionSet.linker/>
-      </properties>
-    </profile>
-  </profiles>
 </project>

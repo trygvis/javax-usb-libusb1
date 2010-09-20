@@ -66,6 +66,17 @@ Example settings.xml:
       </profiles>
     </settings>
 
+Note that on Linux "arch" is amd64 while on OSX it is x86_64.
+You can check the values for your platform by running
+
+>     mvn -version`
+
+Note that you might have to run Maven's JVM with -d32 or -d64 to select a different bit size.
+
+You can see the current settings with
+
+>     mvn help:active-profiles -N -f javalibusb1/pom.xml`
+
 ### Building 64-Bit Versions
 
 The Maven setup will automatically build 64-bit versions of libusb *and*

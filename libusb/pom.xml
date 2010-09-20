@@ -9,80 +9,55 @@
   <name>Javalibusb1 :: libusb</name>
   <packaging>pom</packaging>
   <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <!--
+        autogen.sh runs ./configure, but includes extra arguments
+        (enable-maintainer-mode, enable-debug-log, enable-examples-build)
+        which we don't want.
+        -->
+        <executions>
+          <execution>
+            <id>libusb-autogen</id>
+            <phase>install</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <workingDirectory>../libusb-git</workingDirectory>
+              <executable>bash</executable>
+              <commandlineArgs>-c "CFLAGS='${libusb.cflags}' ./autogen.sh"</commandlineArgs>
+            </configuration>
+          </execution>
+          <execution>
+            <id>libusb-configure</id>
+            <phase>install</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <workingDirectory>../libusb-git</workingDirectory>
+              <executable>bash</executable>
+              <commandlineArgs>-c "CFLAGS='${libusb.cflags}' ./configure --prefix=${libusb.home} ${libusb.configure.args}"
+              </commandlineArgs>
+            </configuration>
+          </execution>
+          <execution>
+            <id>libusb-make</id>
+            <phase>install</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <workingDirectory>../libusb-git</workingDirectory>
+              <executable>make</executable>
+              <commandlineArgs>clean install</commandlineArgs>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
-  <profiles>
-    <profile>
-      <id>libusb-configure</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <!--
-            autogen.sh runs ./configure, but includes extra arguments
-            (enable-maintainer-mode, enable-debug-log, enable-examples-build)
-            which we don't want.
-            -->
-            <executions>
-              <execution>
-                <id>libusb-autogen</id>
-                <phase>validate</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <workingDirectory>../libusb-git</workingDirectory>
-                  <executable>bash</executable>
-                  <commandlineArgs>-c "CFLAGS='${libusb.cflags}' ./autogen.sh"</commandlineArgs>
-                </configuration>
-              </execution>
-              <execution>
-                <id>libusb-configure</id>
-                <phase>validate</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <workingDirectory>../libusb-git</workingDirectory>
-                  <executable>bash</executable>
-                  <commandlineArgs>-c "CFLAGS='${libusb.cflags}' ./configure --prefix=${libusb.home}"</commandlineArgs>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>libusb-make</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>libusb-make</id>
-                <phase>compile</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <workingDirectory>../libusb-git</workingDirectory>
-                  <executable>make</executable>
-                  <commandlineArgs>clean install</commandlineArgs>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 </project>
