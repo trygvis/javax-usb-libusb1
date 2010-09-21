@@ -3,6 +3,8 @@ package no.hackaton.usb.ftdi;
 import static javax.usb.UsbConst.*;
 import static no.hackaton.usb.ftdi.Ftdi232Util.*;
 
+import javax.usb.*;
+import javax.usb.util.*;
 import java.io.*;
 
 public class Ftdi232 implements Closeable {

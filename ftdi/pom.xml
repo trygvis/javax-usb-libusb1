@@ -10,15 +10,17 @@
   </parent>
   <artifactId>ftdi</artifactId>
   <name>Javalibusb1 :: FTDI Driver</name>
+  <packaging>nar</packaging>
   <dependencies>
     <dependency>
       <groupId>no.hackaton.usb</groupId>
-      <artifactId>javax.usb</artifactId>
+      <artifactId>javalibusb1</artifactId>
       <version>${project.version}</version>
+      <type>nar</type>
     </dependency>
     <dependency>
       <groupId>no.hackaton.usb</groupId>
-      <artifactId>javalibusb1</artifactId>
+      <artifactId>javax.usb-extra</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

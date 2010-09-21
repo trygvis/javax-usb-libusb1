@@ -83,6 +83,12 @@ The Maven setup will automatically build 64-bit versions of libusb *and*
 javalibusb1 if you are using a 64-bit JVM. Run your Maven with -d64 to run a
 64-bit JVM.
 
+### Running main() Methods From Your IDE
+
+At least IntelliJ IDEA does not realize that the usbtools module depend on the
+javalibusb1 because the javalibusb1 is not recognized ha a "Java" module when
+it has packaging=nar in its POM.
+
 Notes on Keeping Syncronized with Upstream
 ------------------------------------------
 

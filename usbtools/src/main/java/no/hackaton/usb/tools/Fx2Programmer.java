@@ -1,13 +1,13 @@
 package no.hackaton.usb.tools;
 
-import static java.lang.Thread.sleep;
+import static java.lang.Thread.*;
 import static java.util.Arrays.*;
 import static javax.usb.extra.ExtraUsbUtil.*;
-import static javax.usb.util.UsbUtil.*;
 import static no.hackaton.usb.tools.Fx2Device.*;
 import no.hackaton.usb.tools.IntelHex.*;
-import static no.hackaton.usb.tools.IntelHex.*;
 import static no.hackaton.usb.tools.IntelHex.RecordType.*;
+import static no.hackaton.usb.tools.IntelHex.openIntelHexFile;
+import static no.hackaton.usb.tools.UsbCliUtil.*;
 
 import javax.usb.*;
 import java.io.*;
@@ -22,31 +22,25 @@ public class Fx2Programmer {
         short idVendor = FX2_ID_VENDOR;
         short idProduct = FX2_ID_PRODUCT;
 
-        List<String> args = new ArrayList<String>();
-        args.addAll(asList(a));
-
+        List<String> args = new ArrayList<String>(asList(a));
         Iterator<String> it = args.iterator();
         while (it.hasNext()) {
             String arg = it.next();
             if (arg.equals("--list")) {
-                doList("0", hub, idVendor, idProduct);
+                listDevices(hub, idVendor, idProduct);
                 break;
-            }
-            else {
-                // TODO: Parse out --id=VVVV.PPPP[.N] and --device=[device path]
-                commandPhase(args, hub, idVendor, idProduct);
+            } else {
+                UsbDevice usbDevice = findUsbDevice(hub, idVendor, idProduct);
+                if (usbDevice == null) {
+                    return;
+                }
+                commandPhase(usbDevice, args);
                 break;
             }
         }
     }
 
-    private static void commandPhase(List<String> args, UsbHub hub, short idVendor, short idProduct) throws Exception {
-        UsbDevice usbDevice = findUsbDevice(hub, idVendor, idProduct);
-
-        if(usbDevice == null) {
-            System.err.println("Could not find fx2 device.");
-            return;
-        }
+    private static void commandPhase(UsbDevice usbDevice, List<String> args) throws Exception {
 
         Fx2Device fx2 = new Fx2Device(usbDevice);
 
@@ -101,24 +95,5 @@ public class Fx2Programmer {
 
     private static void doDelay(long delay) throws InterruptedException {
         sleep(delay);
-    }
-
-    private static void doList(String prefix, UsbHub hub, short idVendor, short idProduct) {
-        List<UsbDevice> list = hub.getAttachedUsbDevices();
-        for (int i = 0; i < list.size(); i++) {
-            UsbDevice device = list.get(i);
-            if (device.isUsbHub()) {
-                doList(prefix + "." + i, (UsbHub) device, idVendor, idProduct);
-            } else {
-                UsbDeviceDescriptor deviceDescriptor = device.getUsbDeviceDescriptor();
-
-                System.err.print(prefix + "." + i + " " + toHexString(deviceDescriptor.idVendor()) + ":" + toHexString(deviceDescriptor.idProduct()));
-
-                if (isUsbDevice(deviceDescriptor, idVendor, idProduct)) {
-                    System.err.print(" (Unconfigured FX2)");
-                }
-                System.err.println();
-            }
-        }
     }
 }

@@ -1,5 +1,6 @@
 package no.hackaton.usb.ftdi;
 
+import org.junit.*;
 import static org.junit.Assert.*;
 
 public class Ftdi232Test {

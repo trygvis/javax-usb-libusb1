@@ -1,5 +1,7 @@
 package no.hackaton.usb.ftdi;
 
+import javax.usb.*;
+
 public class ReadSerial {
     public static void main(String[] args) throws Exception {
         UsbServices usbServices = UsbHostManager.getUsbServices();

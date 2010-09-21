@@ -93,7 +93,8 @@ public class Libusb1UsbIrp implements UsbIrp {
         irp.setData(data);
     }
 
-    public void setData(byte[] data, int offset, int length) {irp.setData(data, offset, length);
+    public void setData(byte[] data, int offset, int length) {
+        irp.setData(data, offset, length);
     }
 
     public void setLength(int length) {
