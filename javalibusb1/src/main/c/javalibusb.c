@@ -75,15 +75,26 @@ usb_init() should be called as a part of the static initializer.
 
 static void releaseReferences(JNIEnv *env);
 
-static jclass findAndReferenceClass(JNIEnv *env, const char* name) {
-    fprintf(stderr, "Loading class %s\n", name);
+static void debug_printf(const char *format, ...) {
+    char p[1024];
+
+    va_list ap;
+    va_start(ap, format);
+    (void)vsnprintf(p, sizeof(p), format, ap);
+    va_end(ap);
+
+    /* Would a right-adjusted name look more readable? */
+    fprintf(stderr, "javalibusb1: DEBUG %s", p);
     fflush(stderr);
+}
+
+static jclass findAndReferenceClass(JNIEnv *env, const char* name) {
+    debug_printf("Loading class %s\n", name);
     jclass klass = (*env)->FindClass(env, name);
 
     if(klass == NULL) {
         (*env)->ExceptionClear(env);
-        fprintf(stderr, "Error finding class %s\n", name);
-        fflush(stderr);
+        debug_printf("Error finding class %s\n", name);
         (*env)->FatalError(env, name);
         return NULL;
     }
@@ -92,8 +103,7 @@ static jclass findAndReferenceClass(JNIEnv *env, const char* name) {
 
     if(klass == NULL) {
         (*env)->ExceptionClear(env);
-        fprintf(stderr, "Error adding reference to class %s\n", name);
-        fflush(stderr);
+        debug_printf("Error adding reference to class %s\n", name);
         (*env)->FatalError(env, name);
         return NULL;
     }
@@ -477,8 +487,7 @@ int load_configurations(JNIEnv *env, struct libusb_device *device, uint8_t bNumC
     int config;
     if((err = usbw_get_configuration(handle, &config))) {
         // This happens on OSX with Apple's IR Receiver which almost always is suspended
-        // fprintf(stderr, "**** get_configuration: could not get descriptor with index %d of %d in total. Skipping device %04x:%04x, err=%s\n", index, bNumConfigurations, descriptor.idVendor, descriptor.idProduct, usbw_error_to_string(err));
-        // fflush(stderr);
+        // debug_printf("**** get_configuration: could not get descriptor with index %d of %d in total. Skipping device %04x:%04x, err=%s\n", index, bNumConfigurations, descriptor.idVendor, descriptor.idProduct, usbw_error_to_string(err));
         // throwPlatformExceptionMsgCode(env, err, "libusb_get_configuration(): %s", usbw_error_to_string(err));
         usbw_close(handle);
         return 1;

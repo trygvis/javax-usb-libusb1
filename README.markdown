@@ -1,3 +1,32 @@
+Source Code Organization
+========================
+
+This source code base used Maven 2 for building. The root directory and each
+source code module has a pom.xml file which is used by Maven.
+
+The Maven Modules
+-----------------
+
+* *javax.usb* - My implementation of the JSR-80 API. This is a small module
+  which only implements the API itself.
+
+* *javax.usb-extra* - Some extra code that only depend on the JSR-80 API
+  which I feel either should be a part of the API or is just too generic to
+  put elsewhere.
+
+* *libusb* / *libusb-git* - A Maven module that builds libusb from the
+  sources checked out by git under libusb-git. Make sure to configure your
+  environment to get this module to build. See below.
+
+* *javalibusb1* - The implementation itself. Consists of some C code with some header
+  files and a set of Java files.
+
+* *usbtools* - Random tools to work with USB chips.
+
+  Contains a library and command line tools to work with fx2 chips.
+
+* *ftdi* - Utilities for talking to [ftdi] chips.
+
 Technical Implementation Details
 ================================
 
@@ -23,7 +52,8 @@ system property "javax.usb.libusb.trace" to true
 
 >     -Djavax.usb.libusb.trace=true`
 
-### Building
+Building
+--------
 
 To build the main software a `mvn install` will be sufficient.
 
@@ -77,17 +107,26 @@ You can see the current settings with
 
 >     mvn help:active-profiles -N -f javalibusb1/pom.xml`
 
-### Building 64-Bit Versions
+Building 64-Bit Versions
+------------------------
 
 The Maven setup will automatically build 64-bit versions of libusb *and*
 javalibusb1 if you are using a 64-bit JVM. Run your Maven with -d64 to run a
 64-bit JVM.
 
-### Running main() Methods From Your IDE
+Running main() Methods From Your IDE
+------------------------------------
 
 At least IntelliJ IDEA does not realize that the usbtools module depend on the
 javalibusb1 because the javalibusb1 is not recognized ha a "Java" module when
 it has packaging=nar in its POM.
+
+Checking the formatted version of the README file
+-------------------------------------------------
+
+Simply run:
+
+>     rdiscount README.markdown > README.html
 
 Notes on Keeping Syncronized with Upstream
 ------------------------------------------
@@ -97,7 +136,7 @@ This is the command used to create and synchronize the upstream CVS repositories
 >     git cvsimport -d :pserver:anonymous@javax-usb.cvs.sourceforge.net:/cvsroot/javax-usb javax-usb
 
 Notes on Building the TCK
--------------------------
+=========================
 
 This section has slowly bit rotted after no-one could document the required USB setup
 for the firmware. Will have to invent/run my own TCK to prove compliance.
@@ -107,7 +146,8 @@ To build this software you need:
   * For the TCK: A working SDCC installation in your PATH that supports
     the "mcs51" target. I'm using v2.9.0.
 
-### The Firmware
+The Firmware
+------------
 
 The original firmware images are not used as it's not clear which
 images they represent. In addition I can't use any tools that work
@@ -124,14 +164,16 @@ PATH. For example:
     FX2LIBDIR=/Users/trygvis/dev/com.github/mulicheng/fx2lib/
     PATH:=/Users/trygvis/src/cycfx2prog-0.47:$(PATH)
 
-#### Building the Firmware
+Building the Firmware
+---------------------
 
 Building the firmware is easy once your have all the prerequisites set up:
 
     cd tck/images
     make
 
-#### The Build 
+The Build
+---------
 
 ### Loading the Firmware
 
@@ -173,4 +215,5 @@ To load the firmware:
 Notes
 =====
 
-[fx2lib]: http://github.com/mulicheng/fx2lib "fx2lib"
+[fx2lib]: http://github.com/trygvis/fx2lib "fx2lib"
+[ftdi]: http://www.ftdichip.com/ "FTDI"

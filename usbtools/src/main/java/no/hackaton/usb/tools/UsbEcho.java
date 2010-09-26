@@ -1,7 +1,6 @@
 package no.hackaton.usb.tools;
 
 import static java.lang.Byte.parseByte;
-import static java.lang.Integer.parseInt;
 import static javax.usb.UsbHostManager.*;
 import static no.hackaton.usb.tools.HexFormatter.writeBytes;
 import static no.hackaton.usb.tools.UsbCliUtil.findDevice;

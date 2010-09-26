@@ -21,6 +21,7 @@ public class Fx2Programmer {
 
         short idVendor = FX2_ID_VENDOR;
         short idProduct = FX2_ID_PRODUCT;
+        String id = null;
 
         List<String> args = new ArrayList<String>(asList(a));
         Iterator<String> it = args.iterator();
@@ -29,8 +30,10 @@ public class Fx2Programmer {
             if (arg.equals("--list")) {
                 listDevices(hub, idVendor, idProduct);
                 break;
+            } else if (arg.startsWith("--id=")) {
+                id = arg.substring(5);
             } else {
-                UsbDevice usbDevice = findUsbDevice(hub, idVendor, idProduct);
+                UsbDevice usbDevice = findDevice(hub, idVendor, idProduct, id);
                 if (usbDevice == null) {
                     return;
                 }
