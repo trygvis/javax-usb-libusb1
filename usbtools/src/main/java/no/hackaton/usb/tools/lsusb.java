@@ -11,7 +11,7 @@ public class lsusb {
         try {
             UsbServices usbServices = UsbHostManager.getUsbServices();
 
-            dump(usbServices.getRootUsbHub());
+            dump(usbServices.getRootUsbHub(), args);
         } catch (UsbPlatformException e) {
             System.out.println("Platform error code: " + e.getErrorCode() + ", libusb: " + decodeLibusbError(e.getErrorCode()));
             e.printStackTrace();
@@ -22,13 +22,27 @@ public class lsusb {
         }
     }
 
-    private static void dump(UsbHub usbHub) throws UsbException {
-        System.out.println("Usb hub");
+    private static void dump(UsbHub usbHub, String[] args) throws UsbException {
+        if (args.length > 0) {
+            for (String id : args) {
+                UsbDevice device = UsbCliUtil.findDevice(usbHub, null, null, id);
 
-        for (UsbDevice usbDevice : usbHub.getAttachedUsbDevices()) {
-            System.out.println("Usb device:");
-            dump(usbDevice);
-            close(usbDevice);
+                if(device == null) {
+                    System.err.println("Could not find device '" + id + "'.");
+                }
+                else {
+                    dump(device);
+                }
+            }
+        } else {
+            System.out.println("Usb hub");
+
+            for (UsbDevice usbDevice : usbHub.getAttachedUsbDevices()) {
+                System.out.println("Usb device:");
+                dump(usbDevice);
+                close(usbDevice);
+            }
+
         }
     }
 

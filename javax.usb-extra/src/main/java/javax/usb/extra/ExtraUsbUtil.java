@@ -6,6 +6,25 @@ import javax.usb.*;
 import java.util.*;
 
 public class ExtraUsbUtil {
+    /**
+     * @param a Least significant byte
+     * @param b Most significant byte
+     */
+    public static short toShort(byte a, byte b) {
+        return (short)(b << 8 | a);
+    }
+
+    /**
+     * @param a Least significant byte
+     * @param b
+     * @param c
+     * @param d Most significant byte
+     * @return
+     */
+    public static int toInt(byte a, byte b, byte c, byte d) {
+        return d << 24 | c << 16 | b << 8 | a;
+    }
+
     public static boolean isUsbDevice(UsbDeviceDescriptor descriptor, short idVendor, short idProduct) {
         return descriptor.idVendor() == idVendor && descriptor.idProduct() == idProduct;
     }
