@@ -103,8 +103,20 @@
               <mainClass>no.hackaton.usb.tools.UsbEcho</mainClass>
             </program>
             <program>
+              <name>usb-read</name>
+              <mainClass>no.hackaton.usb.tools.UsbRead</mainClass>
+            </program>
+            <program>
+              <name>usb-write</name>
+              <mainClass>no.hackaton.usb.tools.UsbWrite</mainClass>
+            </program>
+            <program>
               <name>ztex-memtest</name>
               <mainClass>no.hackaton.usb.tools.ztex.MemTest</mainClass>
+            </program>
+            <program>
+              <name>ztex-load-bitstream</name>
+              <mainClass>no.hackaton.usb.tools.ztex.ZtexLoadBitStream</mainClass>
             </program>
           </programs>
         </configuration>

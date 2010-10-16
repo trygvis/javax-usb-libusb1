@@ -5,7 +5,7 @@ import no.hackaton.usb.tools.*;
 import javax.usb.*;
 import java.io.*;
 
-public class Ztex {
+public class ZtexLoadBitStream {
     public static void main(String[] args) throws UsbException, IOException {
 //        System.setProperty("javax.usb.libusb.trace", "true");
 //        System.setProperty("javax.usb.libusb.debug", "3");
