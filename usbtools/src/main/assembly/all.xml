@@ -46,6 +46,13 @@
       </includes>
     </fileSet>
     <fileSet>
+      <directory>target/nar/javalibusb1-${project.version}-amd64-Linux-gpp-jni</directory>
+      <outputDirectory>lib</outputDirectory>
+      <includes>
+        <include>**/*.so</include>
+      </includes>
+    </fileSet>
+    <fileSet>
       <directory>target/nar/javalibusb1-${project.version}-i386-MacOSX-gpp-jni</directory>
       <outputDirectory>lib</outputDirectory>
       <includes>

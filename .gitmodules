@@ -1,3 +1,9 @@
 [submodule "libusb-git"]
 	path = libusb-git
 	url = git://git.libusb.org/libusb-trygvis
+[submodule "maven-nar-plugin"]
+	path = maven-nar-plugin
+	url = http://github.com/duns/maven-nar-plugin.git
+[submodule "cpptasks-parallel"]
+	path = cpptasks-parallel
+	url = http://github.com/duns/cpptasks-parallel.git
