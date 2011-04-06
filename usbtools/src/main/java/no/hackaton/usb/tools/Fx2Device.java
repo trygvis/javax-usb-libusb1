@@ -55,7 +55,7 @@ public class Fx2Device implements Closeable {
     }
 
     public void write(int address, byte[] bytes, int offset, int length) throws UsbException {
-        System.err.println("Fx2Device.write: address=" + toHexString((short)address) + ", bytes=" + bytes.length);
+        System.err.println("Fx2Device.write: address=" + toHexString((short)address) + ", bytes=" + length);
         byte bmRequestType = 0x40; // Vendor request, IN
         byte bRequest = (byte) 0xa0;
         short wValue = (short) address;
