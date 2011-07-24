@@ -31,6 +31,7 @@ public class Fx2Programmer {
                 break;
             } else if (arg.startsWith("--id=")) {
                 id = arg.substring(5);
+                it.remove();
             } else {
                 UsbDevice usbDevice = findDevice(hub, idVendor, idProduct, id);
                 if (usbDevice == null) {
