@@ -1,7 +1,6 @@
 package no.hackaton.usb.tools;
 
 import static java.lang.Integer.*;
-import static java.lang.Short.*;
 import static javax.usb.extra.ExtraUsbUtil.*;
 import static javax.usb.util.UsbUtil.toHexString;
 
@@ -27,8 +26,8 @@ public class UsbCliUtil {
             int i = id.indexOf(':');
             if (i == 4) {
                 // this is an id on the form VVVV.PPPP
-                idVendor = parseShort(id.substring(0, 4), 16);
-                idProduct = parseShort(id.substring(5, 9), 16);
+                idVendor = (short) parseInt(id.substring(0, 4), 16);
+                idProduct = (short) parseInt(id.substring(5, 9), 16);
 
                 id = null;
             }
@@ -50,6 +49,7 @@ public class UsbCliUtil {
 
             if (index >= devices.size() || index < 0) {
                 System.err.println("'id' parameter is out of range.");
+                return null;
             }
 
             return devices.get(index);
