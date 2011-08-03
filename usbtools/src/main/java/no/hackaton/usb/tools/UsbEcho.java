@@ -52,9 +52,19 @@ public class UsbEcho {
         usbInterface.claim();
         try {
             UsbEndpoint outEndpoint = usbInterface.getUsbEndpoint(outEp);
+            if(outEndpoint == null) {
+                System.err.println("Could not find out endpoint: " + outEp + ".");
+                return;
+            }
+
             UsbEndpointDescriptor outED = outEndpoint.getUsbEndpointDescriptor();
 
             UsbEndpoint inEndpoint = usbInterface.getUsbEndpoint((byte) (0x80 | inEp));
+            if(inEndpoint == null) {
+                System.err.println("Could not find in endpoint: " + inEp + ".");
+                return;
+            }
+
             UsbEndpointDescriptor inED = inEndpoint.getUsbEndpointDescriptor();
 
             if(outED.wMaxPacketSize() != inED.wMaxPacketSize()) {
