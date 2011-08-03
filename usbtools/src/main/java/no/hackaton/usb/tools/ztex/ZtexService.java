@@ -4,17 +4,11 @@ import static java.lang.Math.*;
 import static org.apache.commons.io.FileUtils.*;
 
 import javax.usb.*;
+import static javax.usb.util.UsbUtil.*;
 import java.io.*;
 
 public class ZtexService {
-    private final ZtexDevice device;
-
-    public ZtexService(ZtexDevice device) {
-        this.device = device;
-    }
-
-
-    public void loadBitStream(File file) throws UsbException, IOException {
+    public static byte loadBitStream(ZtexDevice device, File file) throws UsbException, IOException {
         device.resetFpga();
 
         int chunkSize = 256 * 8;
@@ -32,10 +26,6 @@ public class ZtexService {
             device.sendFpgaData(bytes, offset, size);
         }
 
-        System.out.println("Calculated checksum=" + cs);
-
-        ZtexFpgaState fpgaState = device.getFpgaState();
-
-        System.out.println("fpgaState.checksum = " + fpgaState.checksum);
+        return (byte)cs;
     }
 }

@@ -3,10 +3,11 @@ package no.hackaton.usb.tools.ztex;
 import no.hackaton.usb.tools.*;
 
 import javax.usb.*;
+import static javax.usb.util.UsbUtil.*;
 import java.io.*;
 
 public class ZtexLoadBitStream {
-    public static void main(String[] args) throws UsbException, IOException {
+    public static void main(String[] args) throws Exception {
 //        System.setProperty("javax.usb.libusb.trace", "true");
 //        System.setProperty("javax.usb.libusb.debug", "3");
 
@@ -22,12 +23,26 @@ public class ZtexLoadBitStream {
 
         System.out.println("device: " + ztexDevice.deviceDescriptor);
 
-        System.out.println("fpgaState = " + ztexDevice.getFpgaState());
+        /*
+        ZtexFpgaState state = ztexDevice.getFpgaState();
+        System.out.println("FPGA state:");
+        System.out.println("  Configured: " + state.configured);
+        System.out.println("  Checksum: 0x" + toHexString(state.checksum));
+        System.out.println("  Bytes transferred: " + state.bytesTransferred);
+        System.out.println("  INIT_B: " + state.initB);
+        */
 
         System.out.println("Resetting...");
         ztexDevice.resetFpga();
 
-        System.out.println("fpgaState = " + ztexDevice.getFpgaState());
+        /*
+        state = ztexDevice.getFpgaState();
+        System.out.println("FPGA state:");
+        System.out.println("  Configured: " + state.configured);
+        System.out.println("  Checksum: 0x" + toHexString(state.checksum));
+        System.out.println("  Bytes transferred: " + state.bytesTransferred);
+        System.out.println("  INIT_B: " + state.initB);
+        */
 
         if (args.length > 0) {
             File file = new File(args[0]);
@@ -37,13 +52,33 @@ public class ZtexLoadBitStream {
                 return;
             }
 
-            ZtexService service = new ZtexService(ztexDevice);
+            boolean success = loadFile(ztexDevice, file);
+            System.exit(success ? 0 : 1);
+        }
+        System.exit(1);
+    }
 
-            System.out.println("Uploading " + file + "...");
-            service.loadBitStream(file);
-            System.out.println("Bitstream uploaded");
+    public static boolean loadFile(ZtexDevice ztexDevice, File file) throws Exception {
+        System.out.println("Uploading " + file + "...");
+        byte checksum = ZtexService.loadBitStream(ztexDevice, file);
+
+        ZtexFpgaState state = ztexDevice.getFpgaState();
+
+        if (checksum == state.checksum) {
+            System.out.println("Bitstream uploaded successfully");
+            return true;
         }
 
-        System.out.println("fpgaState = " + ztexDevice.getFpgaState());
+        System.err.println("Checksum mismatch!");
+        System.out.println("Host checksum: 0x" + toHexString(checksum));
+        System.out.println("FPGA checksum: 0x" + toHexString(state.checksum));
+
+        System.out.println("FPGA state:");
+        System.out.println("  Configured: " + state.configured);
+        System.out.println("  Checksum: 0x" + toHexString(state.checksum));
+        System.out.println("  Bytes transferred: " + state.bytesTransferred);
+        System.out.println("  INIT_B: " + state.initB);
+
+        return false;
     }
 }
