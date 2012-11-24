@@ -43,6 +43,7 @@
             <includePaths>
               <includePath>${libusb.home}/include/libusb-1.0</includePath>
               <includePath>${basedir}/src/main/include</includePath>
+              <includePath>/System/Library/Frameworks/JavaVM.framework/Versions/A/Headers</includePath>
             </includePaths>
           </c>
           <linker>

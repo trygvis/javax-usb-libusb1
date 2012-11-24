@@ -8,6 +8,6 @@ public class LsusbTest {
 //        System.setProperty("javax.usb.libusb.trace", "true");
 //        System.setProperty("javax.usb.libusb.debug", "3");
 
-        lsusb.main(new String[0]);
+        //lsusb.main(new String[0]);
     }
 }
