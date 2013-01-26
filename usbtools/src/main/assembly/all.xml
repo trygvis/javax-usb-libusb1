@@ -27,7 +27,7 @@
     This would have been the optimal solution if the appassembler plugin
     would be able to pick up the extra files under lib/.
     <fileSet>
-      <directory>${localRepository}/no/hackaton/javalibusb1/${project.version}</directory>
+      <directory>${localRepository}/io/trygvis/usb/javalibusb1/${project.version}</directory>
       <outputDirectory>lib</outputDirectory>
       <includes>
         <include>*-jni.nar</include>

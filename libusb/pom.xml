@@ -1,7 +1,7 @@
 <project>
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>no.hackaton.usb</groupId>
+    <groupId>io.trygvis.usb</groupId>
     <artifactId>javax-usb-libusb1</artifactId>
     <version>1.0.1-1-SNAPSHOT</version>
   </parent>

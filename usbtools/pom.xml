@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>no.hackaton.usb</groupId>
+    <groupId>io.trygvis.usb</groupId>
     <artifactId>javax-usb-libusb1</artifactId>
     <version>1.0.1-1-SNAPSHOT</version>
   </parent>
@@ -13,13 +13,13 @@
   <packaging>nar</packaging>
   <dependencies>
     <dependency>
-      <groupId>no.hackaton.usb</groupId>
+      <groupId>io.trygvis.usb</groupId>
       <artifactId>javalibusb1</artifactId>
       <version>${project.version}</version>
       <type>nar</type>
     </dependency>
     <dependency>
-      <groupId>no.hackaton.usb</groupId>
+      <groupId>io.trygvis.usb</groupId>
       <artifactId>javax.usb-extra</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -38,6 +38,7 @@
         </configuration>
       </plugin>
       <plugin>
+        <groupId>io.trygvis.usb</groupId>
         <artifactId>maven-nar-plugin</artifactId>
         <executions>
           <execution>
@@ -92,31 +93,31 @@
           <programs>
             <program>
               <name>lsusb</name>
-              <mainClass>no.hackaton.usb.tools.lsusb</mainClass>
+              <mainClass>io.trygvis.usb.tools.lsusb</mainClass>
             </program>
             <program>
               <name>fx2programmer</name>
-              <mainClass>no.hackaton.usb.tools.Fx2Programmer</mainClass>
+              <mainClass>io.trygvis.usb.tools.Fx2Programmer</mainClass>
             </program>
             <program>
               <name>usbecho</name>
-              <mainClass>no.hackaton.usb.tools.UsbEcho</mainClass>
+              <mainClass>io.trygvis.usb.tools.UsbEcho</mainClass>
             </program>
             <program>
               <name>usb-read</name>
-              <mainClass>no.hackaton.usb.tools.UsbRead</mainClass>
+              <mainClass>io.trygvis.usb.tools.UsbRead</mainClass>
             </program>
             <program>
               <name>usb-write</name>
-              <mainClass>no.hackaton.usb.tools.UsbWrite</mainClass>
+              <mainClass>io.trygvis.usb.tools.UsbWrite</mainClass>
             </program>
             <program>
               <name>ztex-memtest</name>
-              <mainClass>no.hackaton.usb.tools.ztex.MemTest</mainClass>
+              <mainClass>io.trygvis.usb.tools.ztex.MemTest</mainClass>
             </program>
             <program>
               <name>ztex-load-bitstream</name>
-              <mainClass>no.hackaton.usb.tools.ztex.ZtexLoadBitStream</mainClass>
+              <mainClass>io.trygvis.usb.tools.ztex.ZtexLoadBitStream</mainClass>
             </program>
           </programs>
         </configuration>
