@@ -217,3 +217,7 @@ Notes
 
 [fx2lib]: http://github.com/trygvis/fx2lib "fx2lib"
 [ftdi]: http://www.ftdichip.com/ "FTDI"
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/trygvis/javax-usb-libusb1/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
