@@ -122,7 +122,7 @@ uint8_t usbw_get_device_address(struct libusb_device *device) {
 
 enum libusb_speed usbw_get_speed(struct libusb_device *device) {
     usbw_printf("PRE: %s(%p)\n", __func__, device);
-    enum libusb_speed speed = libusb_get_speed(device);
+    enum libusb_speed speed = libusb_get_device_speed(device);
     usbw_printf("RET: %s: speed=%u\n", __func__, speed);
     return speed;
 }
